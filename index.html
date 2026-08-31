@@ -534,7 +534,10 @@
      geometry and in the DOM it was nothing. Hidden rather than removed, because
      on screen the band above already says it - printed in both places it would
      just repeat itself four times over. */
-  .s-dm { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  /* .sr is hidden at every width; .s-dm is hidden only while the band row above
+     is there to say the same thing, and becomes visible copy below 560px where
+     the bands are dropped. */
+  .sr, .s-dm { position: absolute; width: 1px; height: 1px; overflow: hidden;
     clip-path: inset(50%); white-space: nowrap; }
   .d-when { color: var(--ink-3); margin-left: auto; }
   .s-v { margin: 0.35rem 0 0; }
@@ -544,8 +547,11 @@
   .s-v a:hover { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
   /* The two long sentences a tile used to print unconditionally. Offered, not
      led with: a tile is scanned, and sixty words in a 228px column is not. */
-  .d-more { margin-top: 0.5rem; border-top: 1px dashed var(--rule-2);
+  .d-more { margin-top: auto; border-top: 1px dashed var(--rule-2);
     padding-top: 0.45rem; }
+  /* The stack chips are the last thing above the floor, so they carry the gap
+     that .d-more's auto margin would otherwise swallow. */
+  .drop .chips { margin-bottom: 0.5rem; }
   .d-more summary { font-family: "IBM Plex Mono", ui-monospace, monospace;
     font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--ink-3); cursor: pointer; list-style: none;
@@ -713,9 +719,14 @@
   .c-drops { margin-top: 1.8rem; }
   .drops { display: grid; grid-template-columns: repeat(auto-fit, minmax(228px,1fr));
     gap: 0.6rem; }
+  /* A column, so the disclosure can be pushed to the floor of the tile. Grid
+     stretches every tile in a row to the tallest one, which left the four
+     "how it worked" controls at four different heights inside four boxes of
+     identical height. */
   .drop { padding: 0.85rem 0.95rem; background: var(--surface);
     border: 1px solid var(--rule); border-radius: 12px; position: relative;
-    overflow: hidden; transition: transform .2s ease, box-shadow .2s ease; }
+    overflow: hidden; transition: transform .2s ease, box-shadow .2s ease;
+    display: flex; flex-direction: column; }
   .drop::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
     background: var(--era); }
   .drop:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
@@ -983,8 +994,14 @@
     .pro-cv-m { display: none; }
     /* A closed <details> prints closed, and CSS cannot open one - the script
        does it on beforeprint. This is the fallback for scripting-off, where
-       the formal paragraph is exactly what the printout is wanted for. */
+       the formal paragraph is exactly what the printout is wanted for.
+       The project tiles need the same treatment: their long form is behind a
+       disclosure now, and a printed copy that silently drops the description of
+       eight systems is worse than the wall of text this replaced. */
     .pro-cv > :not(summary) { display: block; }
+    .d-more > :not(summary) { display: block; }
+    /* The +/- control means nothing on paper; the label still does. */
+    .d-more summary::before { content: ""; }
     .pro { break-inside: avoid; }
     .links a::after { content: " " attr(href); font-size: 0.82em; word-break: break-all; }
     .links a[href^="mailto:"]::after { content: ""; }
@@ -1097,7 +1114,7 @@
   <h2 class="shead"><span>The route</span> <em>in order, and what each span was spent on</em></h2>
   <div class="map-scroll" tabindex="0" role="group"
        aria-label="The route, left to right. Scrolls sideways.">
-    <div class="map" style="grid-template-columns: minmax(var(--col-min), 36fr) minmax(var(--col-min), 36fr) minmax(var(--col-min), 39fr) minmax(var(--col-min), 17fr) minmax(var(--col-min), 27fr) minmax(var(--col-min), 24fr) minmax(var(--col-min), 28fr)"><div class="band" style="--era: var(--era-1); --era-z: var(--era-1); grid-column: span 2"><span class="b-lb">Computer science</span><span class="b-d">6y</span></div><div class="band" style="--era: var(--era-2); --era-z: var(--era-2); grid-column: span 1"><span class="b-lb">US healthcare</span><span class="b-d">3y 3m</span></div><div class="band" style="--era: var(--era-3); --era-z: var(--era-3); grid-column: span 1"><span class="b-lb">Food safety</span><span class="b-d">1y 5m</span></div><div class="band" style="--era: var(--era-4); --era-z: var(--era-6); grid-column: span 3"><span class="b-lb">Real estate &amp; IT</span><span class="b-d">6y 7m</span></div><div class="seg" style="--era: var(--era-1); --pct: 92%"><span class="s-bar"></span><span class="s-yr">2008</span><span class="s-lb">Diploma, CSE</span><span class="s-sb">3y</span><span class="s-dm">Industry: Studying computer science. 3 yrs from 2008.</span></div><div class="seg" style="--era: var(--era-1); --pct: 92%"><span class="s-bar"></span><span class="s-yr">2011</span><span class="s-lb">B.Tech, CSE</span><span class="s-sb">3y</span><span class="s-dm">Industry: Studying computer science. 3 yrs from 2011.</span></div><div class="seg" style="--era: var(--era-2); --pct: 100%"><span class="s-bar"></span><span class="s-yr">2015</span><span class="s-lb">Software Engineer</span><span class="s-sb">Pratian &#183; 3y 3m</span><span class="s-dm">Industry: US healthcare &amp; EDI. 3 yrs 3 mo from Apr 2015.</span></div><div class="seg" style="--era: var(--era-3); --pct: 44%"><span class="s-bar"></span><span class="s-yr">2018</span><span class="s-lb">BI Developer</span><span class="s-sb">Pratian &#183; 1y 5m</span><span class="s-dm">Industry: Food safety. 1 yr 5 mo from Jul 2018.</span></div><div class="seg" style="--era: var(--era-4); --pct: 69%"><span class="s-bar"></span><span class="s-yr">2020</span><span class="s-lb">Developer Associate</span><span class="s-sb">JLLT &#183; 2y 3m</span><span class="s-dm">Industry: Commercial real estate &amp; enterprise IT. 2 yrs 3 mo from Jan 2020.</span></div><div class="seg" style="--era: var(--era-5); --pct: 62%"><span class="s-bar"></span><span class="s-yr">2022</span><span class="s-lb">Software Engineer 2</span><span class="s-sb">JLLT &#183; 2y</span><span class="s-dm">Industry: Commercial real estate &amp; enterprise IT. 2 yrs from Apr 2022.</span></div><div class="seg seg--now" style="--era: var(--era-6); --pct: 72%"><span class="s-bar"></span><span class="s-yr">2024</span><span class="s-lb">Senior Full-Stack Dev</span><span class="s-sb">JLLT &#183; 2y 4m</span><span class="s-dm">Industry: Commercial real estate &amp; enterprise IT. 2 yrs 4 mo from Apr 2024.</span></div></div>
+    <div class="map" style="grid-template-columns: minmax(var(--col-min), 36fr) minmax(var(--col-min), 36fr) minmax(var(--col-min), 39fr) minmax(var(--col-min), 17fr) minmax(var(--col-min), 27fr) minmax(var(--col-min), 24fr) minmax(var(--col-min), 28fr)"><div class="band" style="--era: var(--era-1); --era-z: var(--era-1); grid-column: span 2"><span class="b-lb">Computer science</span><span class="b-d">6y</span></div><div class="band" style="--era: var(--era-2); --era-z: var(--era-2); grid-column: span 1"><span class="b-lb">US healthcare</span><span class="b-d">3y 3m</span></div><div class="band" style="--era: var(--era-3); --era-z: var(--era-3); grid-column: span 1"><span class="b-lb">Food safety</span><span class="b-d">1y 5m</span></div><div class="band" style="--era: var(--era-4); --era-z: var(--era-6); grid-column: span 3"><span class="b-lb">Real estate &amp; IT</span><span class="b-d">6y 7m</span></div><div class="seg" style="--era: var(--era-1); --pct: 92%"><span class="s-bar"></span><span class="s-yr">2008</span><span class="s-lb">Diploma, CSE</span><span class="s-sb"><span aria-hidden="true">3y</span></span><span class="s-dm">Industry: Computer science.</span><span class="sr">3 yrs from 2008.</span></div><div class="seg" style="--era: var(--era-1); --pct: 92%"><span class="s-bar"></span><span class="s-yr">2011</span><span class="s-lb">B.Tech, CSE</span><span class="s-sb"><span aria-hidden="true">3y</span></span><span class="s-dm">Industry: Computer science.</span><span class="sr">3 yrs from 2011.</span></div><div class="seg" style="--era: var(--era-2); --pct: 100%"><span class="s-bar"></span><span class="s-yr">2015</span><span class="s-lb">Software Engineer</span><span class="s-sb">Pratian &#183; <span aria-hidden="true">3y 3m</span></span><span class="s-dm">Industry: US healthcare.</span><span class="sr">3 yrs 3 mo from Apr 2015.</span></div><div class="seg" style="--era: var(--era-3); --pct: 44%"><span class="s-bar"></span><span class="s-yr">2018</span><span class="s-lb">BI Developer</span><span class="s-sb">Pratian &#183; <span aria-hidden="true">1y 5m</span></span><span class="s-dm">Industry: Food safety.</span><span class="sr">1 yr 5 mo from Jul 2018.</span></div><div class="seg" style="--era: var(--era-4); --pct: 69%"><span class="s-bar"></span><span class="s-yr">2020</span><span class="s-lb">Developer Associate</span><span class="s-sb">JLLT &#183; <span aria-hidden="true">2y 3m</span></span><span class="s-dm">Industry: Real estate &amp; IT.</span><span class="sr">2 yrs 3 mo from Jan 2020.</span></div><div class="seg" style="--era: var(--era-5); --pct: 62%"><span class="s-bar"></span><span class="s-yr">2022</span><span class="s-lb">Software Engineer 2</span><span class="s-sb">JLLT &#183; <span aria-hidden="true">2y</span></span><span class="s-dm">Industry: Real estate &amp; IT.</span><span class="sr">2 yrs from Apr 2022.</span></div><div class="seg seg--now" style="--era: var(--era-6); --pct: 72%"><span class="s-bar"></span><span class="s-yr">2024</span><span class="s-lb">Senior Full-Stack Dev</span><span class="s-sb">JLLT &#183; <span aria-hidden="true">2y 4m</span></span><span class="s-dm">Industry: Real estate &amp; IT.</span><span class="sr">2 yrs 4 mo from Apr 2024.</span></div></div>
   </div>
   <p class="thru"><span>The industry keeps changing. The problem underneath does not: something important, done by hand.</span></p>
 </section>
