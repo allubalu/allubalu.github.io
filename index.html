@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
+
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%97%BA%3C%2Ftext%3E%3C%2Fsvg%3E"><link rel="canonical" href="https://allubalu.github.io/">
 <meta property="og:type" content="website"><meta property="og:title" content="Prasanna&#x27;s Quest Log"><meta property="og:description" content="Eleven years of engineering as an illustrated character sheet and reverse-chronological quest log, every number traceable to a source."><meta property="og:url" content="https://allubalu.github.io/">
 <meta name="twitter:card" content="summary">
@@ -401,10 +402,17 @@
   .f-cv:hover { border-color: var(--accent-ink); }
 
   .links { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
-  .links a { font-size: var(--fs-md); text-decoration: none; padding: 0.3rem 0.7rem;
-    border: 1px solid var(--rule); border-radius: 999px; background: var(--surface);
+  /* :not(.cv-a) is load-bearing. .links a is one class plus one element, so it
+     outranks .cv-a and was resetting the border and the background of the one
+     filled control on the page - while .cv-a's own `color: var(--surface)` was
+     not overridden by anything. The result, the moment the CV became a link
+     rather than a button, was surface-coloured text on a surface-coloured pill:
+     the primary action rendered blank. */
+  .links a:not(.cv-a) { font-size: var(--fs-md); text-decoration: none;
+    padding: 0.3rem 0.7rem; border: 1px solid var(--rule); border-radius: 999px;
+    background: var(--surface);
     transition: border-color .16s ease, transform .16s ease; }
-  .links a:hover { border-color: var(--accent); transform: translateY(-1px);
+  .links a:not(.cv-a):hover { border-color: var(--accent); transform: translateY(-1px);
     background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 
@@ -412,6 +420,10 @@
   .sheet { display: grid; grid-template-columns: minmax(0,380px) minmax(0,1fr);
     background: var(--surface); border: 1px solid var(--rule); border-radius: 16px;
     box-shadow: var(--shadow-lg); overflow: hidden; }
+  /* Explicit columns, because .ident is emitted first now and would otherwise
+     auto-place into the portrait's column. */
+  .sheet > .portrait { grid-column: 1; grid-row: 1; }
+  .sheet > .ident { grid-column: 2; grid-row: 1; }
   .portrait { background-color: var(--sunken);
     background-image:
       radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--era-3) 16%, transparent), transparent 66%),
@@ -453,6 +465,17 @@
     font-size: var(--fs-lg); line-height: 1.25; margin: 0; }
   .p-org { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-sm);
     color: var(--ink-3); margin: 0.2rem 0 0; }
+  /* The direction, under the post. Deliberately smaller and quieter than
+     .p-role and carrying its own label, so the two lines can never be read as
+     one claim: the top line is a job and this one is a heading. The arrow is a
+     glyph and not part of the words, so it is hidden from a screen reader while
+     the label is read out. */
+  .p-next { display: flex; align-items: baseline; gap: 0.4rem;
+    font-size: var(--fs-md); color: var(--ink-2); margin: 0.45rem 0 0;
+    padding-top: 0.4rem; border-top: 1px dashed var(--rule-2); }
+  .p-next i { font-style: normal; font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: var(--fs-xs); letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-3); flex: 0 0 auto; }
   /* The tenure. It was a 13px outlined pill tacked onto the end of the fifth
      block in this column, which is the last place a number the whole page rests
      on should sit. It is now the column's closing statement, with the figure at
@@ -556,93 +579,117 @@
   [id] { scroll-margin-top: 1.2rem; }
 
   /* ---- stats ---- */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px,1fr));
+  /* Five tiles, all the same size. The hero used to span two of six columns
+     with its figure a step larger than the rest, and "2M+" is three glyphs: in
+     a double-width box at 3.1rem it read as inflated rather than as important,
+     and the one wide column made the strip look like a layout fault. Emphasis
+     is treatment now, not scale - a tinted ground, a solid era rule along the
+     top edge, and the qualifier line only this tile has. That survives every
+     width; a size jump has to be re-tuned at each one. */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
     gap: 0.6rem; margin-top: 0.7rem; }
-  .stat { padding: var(--pad) var(--pad-x); border: 1px solid var(--rule);
-    border-radius: var(--r-md); background: var(--surface); display: grid;
-    gap: 0.05rem; }
-  .stat .n { font-size: clamp(1.8rem,4.6vw,2.4rem); line-height: 1; font-weight: 800;
-    font-variant-numeric: tabular-nums; }
+  .stat { position: relative; overflow: hidden;
+    padding: var(--pad) var(--pad-x); border: 1px solid var(--rule);
+    border-radius: var(--r-md); background: var(--surface);
+    display: grid; align-content: start; gap: 0.05rem; }
+  /* Every tile gets the rule; on the hero it is opaque and twice as tall, so
+     the strip reads as one set with one of them lit. */
+  .stat::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px;
+    background: var(--era); opacity: .3; }
+  .stat .n { font-size: clamp(1.75rem,4.4vw,2.2rem); line-height: 1; font-weight: 800;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.015em; }
   .stat .l { color: var(--ink-2); margin-top: 0.15rem; }
   .stat .q { font-size: var(--fs-md); color: var(--ink-3); line-height: 1.35;
-    margin-top: 0.1rem; max-width: 28ch; }
-  /* Wide enough to be looked at first, and the only tile that is. The span
-     needs a column count it can divide into, or the extra column pushes the
-     last tile onto a row of its own - so the emphasis is only claimed where
-     the grid is explicitly six wide. */
+    margin-top: 0.3rem; padding-top: 0.3rem; max-width: 28ch;
+    border-top: 1px dashed var(--rule-2); }
+  .stat--hero { background: color-mix(in srgb, var(--era) 9%, var(--surface));
+    border-color: color-mix(in srgb, var(--era) 34%, var(--rule)); }
+  .stat--hero::before { height: 4px; opacity: 1; }
+  .stat--hero .n { color: var(--ink); }
   @media (min-width: 1000px) {
-    .stats { grid-template-columns: repeat(6, minmax(0,1fr)); }
-    .stat--hero { grid-column: span 2; }
-    .stat--hero .n { font-size: clamp(2.2rem,6vw,3.1rem); }
+    .stats { grid-template-columns: repeat(5, minmax(0,1fr)); }
+  }
+  /* Two up on a phone, and five tiles in two columns leaves the fifth alone in
+     a row with a hole beside it. The odd one out takes the full width instead,
+     which is why this is :last-child:nth-child(odd) and not :last-child - add a
+     sixth metric and the rule stops applying by itself. */
+  @media (max-width: 999px) {
+    .stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
   }
 
   /* ---- the route ---- */
-  /* A row per span on one shared time axis, replacing seven proportional
-     columns in a sideways scroller. The columns could not be made comfortable
-     to read: a column is at most a seventh of the container, 150px at the
-     page's full width, so every label had to sit near 12px and several still
-     wrapped to three lines. Widening the type made that worse, not better.
+  /* A metro line, replacing a row per span, which replaced seven proportional
+     columns in a sideways scroller. The columns could not be read: a column is
+     at most a seventh of the container, 150px at the page's full width, so every
+     label sat near 12px and several still wrapped to three lines. The rows read
+     perfectly and looked empty: a bar occupies a tenth of its row and the other
+     nine tenths were blank grey track, seven times over.
 
-     Three columns, fixed so every row and the axis align without subgrid:
-     label, track, duration. */
-  .tl { --tl-cols: minmax(0, 17rem) minmax(0, 1fr) 5rem;
-    display: grid; gap: 0.15rem; }
-  .tl-axis, .tl-gh, .tl-row { display: grid; grid-template-columns: var(--tl-cols);
-    gap: 0 1rem; align-items: center; }
+     A line has neither problem. Length still means duration, so the proportion
+     survives; the labels sit in the space either side of the line instead of in
+     a column that has to be as wide as the longest one; and there is no track
+     behind a bar to be empty, because the line IS the drawing.
 
-  /* The years the bars are read against. */
-  .tl-axis { margin-bottom: 0.3rem; }
-  .tl-ticks { position: relative; height: 1.15rem; }
-  .tl-t { position: absolute; left: var(--at); transform: translateX(-50%);
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-sm);
-    letter-spacing: 0.04em; color: var(--ink-3); white-space: nowrap; }
-  .tl-t::before { content: ""; position: absolute; left: 50%; top: 1.25rem;
-    width: 1px; height: 0.4rem; background: var(--rule); }
+     Everything below styles SVG, so the geometry is in templates/quest_log.py
+     and only the paint is here. */
+  .mx { margin: 0.2rem 0 0.5rem; }
+  .mx svg { width: 100%; height: auto; display: block; }
+  /* The dated axis: 11 units of stroke, butt caps so adjacent segments meet
+     without one lapping over the next and changing its colour. */
+  .mx-seg { stroke: var(--era); stroke-width: 11; stroke-linecap: butt; }
+  /* Study is on the line and is not a post, so it is the dashed approach before
+     the line opens rather than another solid stretch of it. */
+  .mx-seg--edu { stroke-width: 7; stroke-dasharray: 3 7; stroke-linecap: round;
+    opacity: .7; }
+  .mx-dot { fill: var(--surface); stroke: var(--era); stroke-width: 3; }
+  /* A ring outside the station, which is how a transit map draws an interchange,
+     so it needs no key beyond the one sentence under the chart. */
+  .mx-int { fill: none; stroke: var(--ink); stroke-width: 2; opacity: .55; }
+  .mx-stem { stroke: var(--era); stroke-width: 1.4; opacity: .5; }
+  .mx-n { font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 13px;
+    font-weight: 600; fill: var(--ink); }
+  /* No text-anchor on .mx-n or .mx-m: the stations at the ends of the line set
+     that attribute per station to read inward, and any CSS rule here would beat
+     the presentation attribute and push them back off the plot. */
+  .mx-m { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px;
+    fill: var(--ink-3); }
+  .mx-yr { font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px; fill: var(--ink-3); text-anchor: middle; }
+  /* Where the line has got to. The cap is what makes the stub after it read as
+     an extension rather than as more line. */
+  .mx-now path { stroke: var(--ink-2); stroke-width: 2; stroke-linecap: round; }
+  .mx-now text { font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10px; fill: var(--ink-3); text-anchor: middle;
+    letter-spacing: 0.06em; }
 
-  /* One industry, over its own spans. */
-  .tl-grp { display: grid; gap: 0.15rem; padding: 0.5rem 0 0.55rem;
-    border-top: 1px solid var(--rule-2); }
-  .tl-grp:first-of-type { border-top: 0; }
-  .tl-gn { font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: var(--fs-md); font-weight: 500; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--ink-2); }
-  /* A band crosses as many eras as it has spans, so it is painted across the
-     range rather than taking the colour of whichever end came first. */
-  .tl-band { position: absolute; left: var(--at); width: var(--len);
-    top: 0; height: 6px; border-radius: 999px;
-    background: linear-gradient(90deg, var(--era),
-      color-mix(in srgb, var(--era-z, var(--era)) 82%, var(--surface)));
-    opacity: .35; }
-  .tl-track--band { height: 6px; }
+  /* The next station. Dashed, hollow, and past the end of the dated axis: three
+     separate ways of saying the same thing, because the one reading this must
+     not produce is that he already holds it. */
+  .mx-stub { stroke: var(--era); stroke-width: 4; stroke-dasharray: 5 7;
+    stroke-linecap: round; opacity: .5; }
+  /* No fill, where every other station is filled with the page surface, and a
+     coarse dash rather than a fine one: at 3.6/3.4 on a 6.4 radius it came out
+     as speckle and read as a smudge rather than as an open station. */
+  .mx-open { fill: none; stroke: var(--era); stroke-width: 2.6;
+    stroke-dasharray: 5.4 4; }
+  .mx-st--next .mx-n { fill: var(--ink-2); }
+  .mx-st--next .mx-stem { stroke-dasharray: 2 3; }
 
-  .tl-row { padding: 0.16rem 0; border-radius: 8px; }
-  .tl-lb { min-width: 0; display: grid; gap: 0.05rem; }
-  .tl-lb b { font-size: var(--fs-lg); font-weight: 600; line-height: 1.25;
-    letter-spacing: -0.004em; color: var(--ink); text-wrap: pretty; }
-  .tl-lb i { font-style: normal; font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: var(--fs-md); letter-spacing: 0.02em; color: var(--ink-3); }
-  .tl-org { color: var(--ink-2); }
-  /* The track is the whole timeline; the bar is this span's slice of it. The
-     bar's left edge is what the column layout could not express: the nine-month
-     gap between graduating and the first job is now visible as a gap. */
-  .tl-track { position: relative; height: 12px; border-radius: 999px;
-    background: var(--sunken); box-shadow: inset 0 0 0 1px var(--rule-2); }
-  .tl-bar { position: absolute; left: var(--at); width: var(--len);
-    top: 0; bottom: 0; border-radius: 999px; background: var(--era);
-    transform-origin: left; }
-  .tl-row--now .tl-bar { background: linear-gradient(90deg, var(--era),
-    color-mix(in srgb, var(--era) 55%, var(--surface))); }
-  .tl-row--now .tl-bar::after { content: ""; position: absolute; right: -3px;
-    top: -3px; width: 18px; height: 18px; border-radius: 50%;
-    background: var(--era); border: 3px solid var(--paper);
-    animation: pulse 2.6s ease-in-out infinite; }
-  .tl-d { font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: var(--fs-md); color: var(--ink-2); text-align: right;
-    font-variant-numeric: tabular-nums; }
-  /* Hovering a row lifts its own bar and dims nothing: the point is to make one
-     span easy to follow across to its duration, not to grey out the others. */
-  .tl-row:hover { background: color-mix(in srgb, var(--era) 7%, transparent); }
-  .tl-row:hover .tl-bar { filter: brightness(1.08); }
+  /* The industry each stretch was in, on the line's own axis. This is the claim
+     in summary.paragraphs[0] - a different industry every few years - drawn
+     rather than asserted, and it is the one thing the row layout did that a
+     line does not do by itself. */
+  .mx-zone rect { fill: var(--era); opacity: .32; }
+  /* Uppercase and tracked, which is what the row layout's industry headings
+     were. Set as plain sentence case at the same size, the industry row and the
+     year row below it were two lines of small grey mono one under the other and
+     a reader had to work out which was which. */
+  .mx-zone text { font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10px; font-weight: 500; fill: var(--ink-2); text-anchor: middle;
+    letter-spacing: 0.07em; text-transform: uppercase; }
+  .mx-key { font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: var(--fs-md); line-height: 1.5; color: var(--ink-3);
+    margin: 0.1rem 0 0; max-width: var(--measure); }
 
   /* Hidden at every width, in every layout. It carries the spoken duration,
      because "3y 3m" reads aloud as "three why three em". */
@@ -731,9 +778,13 @@
   .c-narr p { margin: 0 0 var(--gap-p); max-width: var(--measure);
     color: var(--ink-2); }
 
+  /* One column. The card was prose in one column and a stack of drawings in
+     another, and the two could not be aligned: three fixed-height figures
+     centred in a 300px rail against nine bullets of uneven length line up
+     nowhere. The pairing is a row each now, inside .q-pairs. */
   .quest { background: var(--surface); border: 1px solid var(--rule);
     border-radius: var(--r-md); overflow: hidden; margin-bottom: 0.9rem;
-    display: grid; grid-template-columns: minmax(0,1fr) minmax(0,300px);
+    display: grid; grid-template-columns: minmax(0,1fr);
     box-shadow: var(--shadow);
     transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
   .quest:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg);
@@ -753,12 +804,11 @@
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.28; } }
   .q-when { font-size: var(--fs-md); color: var(--ink-2); }
   .q-when em { font-style: normal; color: var(--ink-3); }
-  .q-art { border-left: 1px solid var(--rule); }
   /* The art panel picks up its card's era as a faint wash, so the drawings sit
      in the same chronology the bars and the spine encode instead of on a grey
      tile. Ordered wash-over-grid, so the grid stays the texture and the era
      stays the tint. */
-  .q-art, .o-art { display: flex; flex-direction: column; justify-content: center;
+  .q-vigs, .o-art { display: flex; flex-direction: column; justify-content: center;
     padding: 0.35rem 0.55rem; background-color: var(--sunken);
     background-image:
       radial-gradient(120% 90% at 70% 8%,
@@ -776,28 +826,58 @@
      school card's width all scaled the same artwork differently, so the same
      figure appeared at three sizes on one page. Capping the SVG and centring it
      makes the drawing the constant and the column the variable. */
-  .vig svg { display: block; width: 100%; max-width: 268px; height: auto;
+  .vig svg { display: block; width: 100%; max-width: 236px; height: auto;
     margin-inline: auto; }
 
   /* ---- pairing a bullet with its picture ---- */
-  /* Both ends print the same number. The strip sits beside up to nine bullets
-     in a 300px column with the drawings centred, so nothing lines up
-     vertically and order alone was carrying the entire relationship. */
+  /* One grid row per pair: the objective on the left, the drawing that
+     illustrates it on the right, tops aligned. The printed numbers stay,
+     because they are what pairs the two with no pointer, no script and no
+     colour vision - but they are now a confirmation of the geometry rather
+     than the only thing carrying it.
+
+     The row centres rather than top-aligning, which is the opposite of what it
+     started as. Top-aligned is the obvious choice and it looked wrong: an
+     objective is two lines and a drawing with its caption is about 150, so
+     every row had the text pinned to the ceiling above 90px of nothing. The
+     drawing is what sets the row height, so the text sits in the middle of it
+     and the leftover space is shared. Aligning the tops of two boxes of very
+     different heights aligns one edge and misaligns the whole rest of it. */
+  .q-pairs { display: grid; }
+  .q-pair { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,250px);
+    gap: 0 1.1rem; align-items: center; padding: 0.55rem 0; }
+  .q-pair + .q-pair { border-top: 1px dashed var(--rule-2); }
+  .q-pair:first-child { padding-top: 0.2rem; }
+  /* A drawing with no objective of its own gets the full width rather than
+     sitting in the right-hand column under nothing. */
+  .q-pair--art { grid-template-columns: minmax(0,1fr); }
+  .q-pair--art .q-vigs { flex-direction: row; }
+  .q-pair--art .vig { flex: 1 1 0; min-width: 0; }
+  .q-pair--art .vig + .vig { border-top: 0; border-left: 1px dashed var(--rule); }
+  /* The objective. Same type and same era marker as an .obj row; it is one row
+     of the same list, just laid out beside its picture. */
+  /* No era bar down the left of these. An .obj row carries one because it has
+     no other mark; a paired objective already has the numbered badge, the
+     dashed rule above it and a drawing beside it, and a fourth marker on a
+     two-line paragraph is just clutter. */
+  .q-o { position: relative; margin: 0; padding: 0.1rem 0.5rem 0.1rem 2.15rem;
+    font-size: var(--fs-base); line-height: 1.62; color: var(--ink-2);
+    text-wrap: pretty; transition: background .2s ease; border-radius: 8px; }
+  .q-vigs { border-radius: 10px; padding: 0.2rem 0.45rem; }
   .o-n, .v-n { font-family: "IBM Plex Mono", ui-monospace, monospace;
     font-size: var(--fs-sm); font-weight: 600; font-variant-numeric: tabular-nums;
     display: inline-grid; place-items: center; width: 1.25rem; height: 1.25rem;
     border-radius: 50%; color: var(--ink-2);
     border: 1px solid color-mix(in srgb, var(--era) 45%, var(--rule));
     background: color-mix(in srgb, var(--era) 10%, var(--surface)); }
-  .obj li[data-b] { padding-left: 2.15rem; }
-  .o-n { position: absolute; left: 0; top: 0.52rem; }
+  .o-n { position: absolute; left: 0; top: 0.28rem; }
   .v-n { position: absolute; top: 0.35rem; left: 0.15rem; z-index: 1; }
   /* Hovering or focusing either end lights the other. An enhancement on top of
      the printed numbers, never the only cue: with no pointer and no script the
      numbers still pair the two. */
-  .obj li[data-b] { cursor: default; transition: background .2s ease; }
-  .obj li.lit, .vig.lit { background: color-mix(in srgb, var(--era) 9%, transparent); }
-  .obj li.lit .o-n, .vig.lit .v-n { color: var(--ink);
+  .q-o { cursor: default; }
+  .q-o.lit, .vig.lit { background: color-mix(in srgb, var(--era) 9%, transparent); }
+  .q-o.lit .o-n, .vig.lit .v-n { color: var(--ink);
     border-color: var(--era); background: color-mix(in srgb, var(--era) 22%, var(--surface)); }
   .vig.lit figcaption { color: var(--ink); }
 
@@ -809,18 +889,10 @@
   .vig figcaption { font-family: "IBM Plex Mono", ui-monospace, monospace;
     font-size: var(--fs-md); line-height: 1.4; letter-spacing: 0.02em; color: var(--ink-2);
     text-align: center; margin-top: 0.3rem; text-wrap: balance; }
-  /* Explicit placement, because .q-body now comes first in the DOM and would
-     otherwise auto-place into the 300px art column. */
-  .q-body { grid-column: 1; grid-row: 2; }
-  .q-art { grid-column: 2; grid-row: 2; }
-  .quest--wide { grid-template-columns: minmax(0,1fr); }
-  .quest--wide .q-art { grid-column: 1; grid-row: 3; flex-direction: row;
-    border-right: 0; border-left: 0; border-top: 1px solid var(--rule);
-    padding: 0.4rem 0.5rem; }
-  .quest--wide .vig { flex: 1 1 0; min-width: 0; padding: 0.45rem 0.6rem; }
-  .quest--wide .vig + .vig { border-top: 0; border-left: 1px dashed var(--rule); }
-
   .q-body { padding: var(--pad) var(--pad-x) var(--pad-x); }
+  /* The second label in the card needs air above it; the first sits under the
+     strip and does not. */
+  .q-lbl--stack { margin-top: 1.1rem; }
   /* Objectives are entries in a log, so they are ruled rows rather than a
      column of glyphs. The marker is the era bar the whole page is built on -
      the same mark as the route segments and the spine - which ties the card to
@@ -836,20 +908,22 @@
     width: 4px; height: 0.9em; border-radius: 999px; background: var(--era);
     transform-origin: top; transition: transform .28s cubic-bezier(.2,.8,.3,1); }
   .obj li:hover::after { transform: scaleY(2.1); }
-  /* The overflow row is a control, not an objective, so it carries no era bar
-     and no rule above it. */
-  .obj li.obj-more { padding: 0.3rem 0 0; border-top: 0; }
-  .obj li.obj-more::after { display: none; }
+  /* The overflow control. It used to be the last <li> of the list, which made a
+     disclosure into an objective; it is a sibling of the pair grid now, because
+     what it hides is no longer the tail of one list but everything that has no
+     picture. */
+  .obj-more { border-top: 1px dashed var(--rule-2); margin-top: 0.2rem; }
   .obj-more summary { font-family: "IBM Plex Mono", ui-monospace, monospace;
     font-size: var(--fs-sm); letter-spacing: 0.04em; color: var(--ink-3);
     cursor: pointer; list-style: none; display: inline-flex; align-items: center;
-    gap: 0.4rem; padding: 0.42rem 0; min-height: 1.6rem; }
+    gap: 0.4rem; padding: 0.55rem 0; min-height: 1.6rem; }
   .obj-more summary::-webkit-details-marker { display: none; }
   .obj-more summary::before { content: "+"; font-weight: 600;
     color: var(--accent-ink); }
-  .obj-more details[open] summary::before { content: "\2212"; }
+  .obj-more[open] summary::before { content: "\2212"; }
   .obj-more summary:hover { color: var(--ink); }
-  .obj-more .obj { margin-bottom: 0; }
+  .obj-more .obj { margin: 0 0 0.6rem; }
+  .obj-more .obj li:first-child { border-top: 1px dashed var(--rule-2); }
   /* The measured figure is the point of the sentence; full ink and a heavier
      weight let it read before the words around it. Era hues stay off small text. */
   /* IBM Plex Sans is loaded at 400/500/600, so 650 resolved to 600 and the
@@ -865,7 +939,7 @@
      rendered at 66ch (894px) instead of the narrow measure a deck wants.
      .c-note and .o-inst were the two remaining uncapped prose blocks, running
      82 and 78 characters per line at the page's full width. */
-  .obj li, .o-body p, .a-cite, .d-sum, .d-more p, .voice blockquote, .s-i,
+  .q-o, .obj li, .o-body p, .a-cite, .d-sum, .d-more p, .voice blockquote, .s-i,
   .wins li, .c-note, .o-inst { max-width: var(--measure); }
 
   .rankup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.7rem;
@@ -1023,8 +1097,8 @@
   .edu--school { background: var(--sunken); grid-template-columns: minmax(0,1fr); }
   .edu--school h3 { font-size: clamp(1.15rem,2.6vw,1.4rem); }
   /* Its prose is four lines and its artwork is two vignettes, so a side-by-side
-     split left 230px of empty column. Same answer as .quest--wide: when the
-     drawings outrun the words, they run full width underneath them instead. */
+     split left 230px of empty column. When the drawings outrun the words, they
+     run full width underneath them instead. */
   .edu--school .o-body { grid-column: 1; grid-row: 2; }
   .edu--school .o-art { grid-column: 1; grid-row: 3; flex-direction: row;
     margin-top: 0.4rem; background-color: var(--surface); }
@@ -1034,6 +1108,12 @@
   .wins li { position: relative; padding-left: 1.35rem; font-size: var(--fs-base);
     color: var(--ink-2); }
   .wins li strong { color: var(--ink); font-weight: 600; }
+  /* The entry, on its own line under the prize. It is the substance of the
+     achievement rather than a qualifier on it, so it gets a line and a rule
+     rather than a comma at the end of the sentence. */
+  .win-p { display: block; margin-top: 0.15rem; padding-left: 0.6rem;
+    border-left: 2px solid var(--era-1); font-style: normal;
+    font-size: var(--fs-md); color: var(--ink-3); }
   .wins li::before { content: ""; position: absolute; left: 0; top: 0.44em;
     width: 9px; height: 9px; border-radius: 2px; background: var(--era-1);
     transform: rotate(45deg); }
@@ -1082,30 +1162,99 @@
   @keyframes steam { 0%,100% { opacity: .18; transform: translateY(2px); }
                      50% { opacity: .6; transform: translateY(-4px); } }
 
+  /* &#9472;&#9472; the school vignettes &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;
+     Every base state below is the state the drawing has to read in when
+     nothing is running: with animation off, the crowd is a crowd, the lamp is
+     lit at dusk, and the equipment is at rest. A shape whose meaning only
+     exists at 50% of a keyframe does not exist for a reader who asked for
+     reduced motion. */
+
+  /* 1. Chosen from a school of 800: the field dims left to right, one is left.
+     The delay is per head, set inline, so the dimming is a sweep and not a
+     blink. It comes back at the end of the cycle rather than latching, because
+     a drawing that plays once and stops is a drawing most readers scroll past
+     the wrong side of. */
+  .cull { opacity: .8; animation: cull 6.4s ease-in-out infinite; }
+  @keyframes cull { 0%,6% { opacity: .8; } 26%,84% { opacity: .16; }
+                    100% { opacity: .8; } }
+
+  /* 2. The science fair project, running: one 9s day. Sun out, moon up, the
+     sensor's eye dark, its indicator lit, and only then the lamp. The order is
+     the circuit's order, so a reader who watches one cycle has read the
+     project. */
+  .sky-sun { opacity: .2; animation: sunset 9s ease-in-out infinite; }
+  @keyframes sunset { 0%,16% { opacity: 1; } 30%,88% { opacity: 0; }
+                      100% { opacity: 1; } }
+  .sky-moon { opacity: .9; animation: moonrise 9s ease-in-out infinite; }
+  @keyframes moonrise { 0%,20% { opacity: 0; } 34%,86% { opacity: .9; }
+                        100% { opacity: 0; } }
+  /* The eye goes dark because that is what an LDR does; the indicator lights
+     because that is the decision. Two shapes, two halves of one sentence. */
+  .s-eye { animation: eye 9s ease-in-out infinite; }
+  @keyframes eye { 0%,24% { opacity: .35; } 40%,86% { opacity: 1; }
+                   100% { opacity: .35; } }
+  .s-led { opacity: 1; animation: led 9s ease-in-out infinite; }
+  @keyframes led { 0%,30% { opacity: .18; } 44%,86% { opacity: 1; }
+                   100% { opacity: .18; } }
+  /* Last, and after the indicator, never with it: the lamp is the consequence.
+     transform-box keeps the growth anchored at the lamp head rather than at the
+     vignette's origin. */
+  .lamp-cone { transform-box: fill-box; transform-origin: 50% 0;
+    animation: cone 9s ease-in-out infinite; }
+  @keyframes cone { 0%,36% { opacity: 0; transform: scaleY(.86); }
+                    52%,86% { opacity: 1; transform: scaleY(1); }
+                    100% { opacity: 0; transform: scaleY(.86); } }
+  .lamp-bulb { animation: bulb 9s ease-in-out infinite; }
+  @keyframes bulb { 0%,36% { opacity: .35; } 52%,86% { opacity: 1; }
+                    100% { opacity: .35; } }
+
+  /* 3. Two sports taking turns in one 7.6s loop: badminton in the first half,
+     baseball in the second. Simultaneous, both sets of equipment move at once
+     and the vignette reads as clutter rather than as a game. */
+  .serve, .swing, .hit { transform-box: fill-box; }
+  .serve { animation: serve 7.6s ease-in-out infinite; }
+  @keyframes serve { 0% { transform: translate(0,0); }
+                     14% { transform: translate(10px,-19px); }
+                     30% { transform: translate(23px,-6px); }
+                     44%,100% { transform: translate(0,0); } }
+  /* About the handle, which is the bottom of the bat: rotating a bat about its
+     middle is a baton twirl. */
+  .swing { transform-origin: 50% 96%; animation: swing 7.6s ease-in-out infinite; }
+  @keyframes swing { 0%,52% { transform: rotate(0deg); }
+                     62% { transform: rotate(-26deg); }
+                     74% { transform: rotate(38deg); }
+                     88%,100% { transform: rotate(0deg); } }
+  .hit { animation: hit 7.6s ease-in-out infinite; }
+  @keyframes hit { 0%,66% { transform: translate(0,0); opacity: 1; }
+                   82% { transform: translate(26px,-22px); opacity: 0; }
+                   83%,100% { transform: translate(0,0); opacity: 1; } }
+
   @media (max-width: 940px) {
     .sheet { grid-template-columns: minmax(0,1fr); }
-    .portrait { border-right: 0; border-bottom: 1px solid var(--rule); }
-    .p-art { max-width: 24rem; margin: 0 auto; width: 100%; }
+    /* Stacked, and in DOM order: identity, then the portrait panel under it. */
+    .sheet > .ident { grid-column: 1; grid-row: 1; }
+    .sheet > .portrait { grid-column: 1; grid-row: 2; }
+    .portrait { border-right: 0; border-top: 1px solid var(--rule); }
+    /* The drawing is a full-width 380px column at desk widths and does not need
+       to be one when it is the whole screen: at 375px it stood 300px tall for
+       no gain in what it says. */
+    .p-art { max-width: 19rem; margin: 0 auto; width: 100%; }
+    /* The theme control is fixed to the top right of the viewport, and with the
+       identity block now first, the sheet's own top-right corner is where the
+       eyebrow starts. They were overlapping by six pixels. */
+    .sheet > .ident { padding-top: 3.4rem; }
   }
-  /* The label column narrows before it wraps. */
-  @media (max-width: 900px) {
-    .tl { --tl-cols: minmax(0, 12rem) minmax(0, 1fr) 4rem; }
-    .tl-axis, .tl-gh, .tl-row { gap: 0 0.7rem; }
-  }
-  /* Below phone width the label goes above its own track, because 12rem of
-     label plus a readable track does not fit in 390px. Nothing is hidden and
-     nothing scrolls sideways: the row simply becomes two lines. */
-  @media (max-width: 620px) {
-    .tl { --tl-cols: minmax(0, 1fr) 4rem; }
-    .tl-axis { display: none; }
-    .tl-row { grid-template-columns: minmax(0,1fr) 4rem;
-      gap: 0.3rem 0.7rem; padding: 0.4rem 0; }
-    .tl-lb { grid-column: 1; }
-    .tl-row .tl-track { grid-column: 1; grid-row: 2; }
-    .tl-row .tl-d { grid-column: 2; grid-row: 2; }
-    .tl-gh { grid-template-columns: minmax(0,1fr) 4rem; }
-    .tl-gh .tl-track--band { grid-column: 1 / -1; grid-row: 2; }
-    .tl-row + .tl-row { border-top: 1px dashed var(--rule-2); }
+  /* The route scrolls rather than shrinks. Type inside an SVG scales with the
+     viewBox, so a station label set at 13px of 1000 units arrives at 5px on a
+     375px screen: the chart would still be there and nobody could read a word
+     of it. Below this width it keeps a legible size and scrolls instead, which
+     is the one thing a proportional axis can give up without lying - the
+     proportions are intact, they are just wider than the window. */
+  @media (max-width: 720px) {
+    .mx { overflow-x: auto; }
+    .mx svg { min-width: 44rem; }
+    /* Focusable, so a keyboard can reach the scroller. */
+    .mx:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   }
   @media (max-width: 820px) {
     /* The hanging label goes above the text; a 7.5rem gutter is a third of a
@@ -1114,12 +1263,16 @@
     .pro-k { margin-top: 0; }
   }
   @media (max-width: 700px) {
-    .quest, .quest--wide { grid-template-columns: minmax(0,1fr); }
-    .quest--wide .q-art { flex-direction: column; }
-    .quest--wide .vig + .vig { border-left: 0; border-top: 1px dashed var(--rule); }
-    .q-art { grid-column: 1; grid-row: 3; border: 0;
-      border-top: 1px solid var(--rule); }
-    .q-body { grid-column: 1; grid-row: 2; }
+    /* A pair becomes two stacked rows: the objective, then the drawing that
+       illustrates it, directly under it. This is the one layout the old card
+       could not produce on a phone - the drawings were one block at the end,
+       so a reader on a phone got nine sentences and then three pictures with
+       nothing to attach them to. The DOM order is already objective-then-figure
+       per pair, so collapsing the columns is the whole change. */
+    .q-pair { grid-template-columns: minmax(0,1fr); gap: 0.4rem; }
+    .q-pair--art .q-vigs { flex-direction: column; }
+    .q-pair--art .vig + .vig { border-left: 0; border-top: 1px dashed var(--rule); }
+    .q-o { padding-left: 1.95rem; }
     .edu { grid-template-columns: minmax(0,1fr); }
     /* Stacked, the art follows the prose, so the space goes above it. */
     .edu .o-body, .edu .o-art { grid-column: 1; }
@@ -1141,13 +1294,28 @@
        `body { color: #000 }` here lost to every var(--ink) rule on specificity
        and printed a dark-theme page at 1.17:1 on paper. */
     .page { max-width: none; padding: 0; }
-    /* The route is rows now, so there is no sideways scroller to flatten. It
-       only needs to keep a group whole across a page break. */
-    .tl-grp { break-inside: avoid; }
+    /* On paper the route stops being a drawing and becomes the list it already
+       carries. A 1000-unit viewBox lands at about 0.64 scale on A4, so the 13px
+       station label prints at 8px; scaling the type up to compensate makes the
+       labels 46% wider on a fixed axis and "Senior Full-Stack Dev" then runs
+       into "Developer Associate". There is nothing to trade off here, because
+       the same spans are already in the DOM as an ordered list for a reader who
+       gets the SVG as one image, and an ordered list is what a printed route
+       wants to be anyway: the drawing goes and the list is unhidden. */
+    .mx, .mx-key { display: none; }
+    .map-wrap ol.sr { position: static; width: auto; height: auto;
+      overflow: visible; clip-path: none; white-space: normal;
+      margin: 0.2rem 0 0; padding-left: 1.4rem; }
+    .map-wrap ol.sr li { font-size: 0.95em; line-height: 1.5; }
     .js .rv { opacity: 1; transform: none; }
     .sheet, .quest, .drop, .ach, .voice, .scroll, .edu, .stat {
       box-shadow: none; break-inside: avoid; }
-    .chapter, .rankup, .xp, .grp { break-inside: avoid; }
+    /* .chapter was in this list and should not have been: a chapter is four
+       role cards and a narrative, so "keep it whole" cannot be honoured and the
+       browser's fallback is to push the whole block to a fresh page. That was
+       most of the white space in the printed file. Keeping the small blocks
+       whole is the part that was ever worth asking for. */
+    .rankup, .xp, .grp { break-inside: avoid; }
     .shead { break-after: avoid; }
     .spine-track, .ghost, .cursor, .toc { display: none; }
     /* The +/- control means nothing on paper. */
@@ -1160,8 +1328,57 @@
        eight systems is worse than the wall of text this replaced. */
     .pro-cv > :not(summary) { display: block; }
     .d-more > :not(summary) { display: block; }
-    .obj-more details > :not(summary) { display: block; }
+    .obj-more > :not(summary) { display: block; }
     .obj-more summary { display: none; }
+    /* The drawings do not go on paper. This is the difference between printing
+       a web page and producing a CV: with every vignette, the portrait and the
+       education artwork in, the file ran to 22 pages and 2.2 MB, and a reader
+       who clicks Download CV and gets 22 pages has been handed the wrong
+       document. The drawings are the page's way of explaining the work to
+       someone browsing; on paper the objective they illustrate is the content,
+       and it is already there in full. Credential badges stay - a seal is
+       information about a certificate, not decoration on it.
+
+       Everything hidden here is hidden on paper only. Nothing is dropped from
+       the page, and nothing that exists only in a drawing is lost: every
+       caption is lifted from the bullet beside it. */
+    .q-vigs, .o-art, .p-art { display: none; }
+    .q-pair { grid-template-columns: minmax(0,1fr); padding: 0.2rem 0; }
+    .q-pair + .q-pair { border-top: 0; }
+    .q-pair--art { display: none; }
+    .o-n { display: none; }
+    .q-o { padding-left: 0.9rem; }
+    /* Tighter leading and less air between cards: on screen the spacing paces
+       the reading, on paper it is just page count. */
+    .q-o, .obj li { line-height: 1.4; }
+    .quest { margin-bottom: 0.5rem; }
+    .chapter { margin-bottom: 1.2rem; }
+
+    /* The page's own voice comes off the paper. Three conversational opening
+       paragraphs and a narrative deck per chapter are how a browsing reader is
+       brought in; a CV opens with the formal summary, which is already in the
+       source and until now was the one paragraph a printout hid behind a
+       closed disclosure. So the printed file inverts that: the formal version
+       is the summary, and the three it was offered beside are dropped.
+
+       This is the whole reason a print stylesheet is worth having. The same
+       facts, ordered for a different reader. Nothing here is content only the
+       printout lacks: every hidden block is either restated formally below or
+       is page furniture. */
+    .pro-lead, .pro-text > p { display: none; }
+    .pro-cv summary { display: none; }
+    .pro-cv p { font-size: 1rem; }
+    .c-narr, .c-note { display: none; }
+    .toc, .thru { display: none; }
+    /* Paper is not a screen. The fluid root is sized for reading at arm's
+       length on a display; at 13px the same type scale sets a document, and
+       the whole file loses a third of its pages without a single line getting
+       harder to read in the hand. */
+    html { font-size: 13px; }
+    /* The stack chips are a scannable strip on screen and a wall of small boxes
+       on paper; the Inventory section lists the same skills grouped properly. */
+    .quest .chips, .quest .q-lbl--stack { display: none; }
+    .drop .chips { display: none; }
     /* The +/- control means nothing on paper; the label still does. */
     .d-more summary::before { content: ""; }
     .pro { break-inside: avoid; }
@@ -1173,9 +1390,13 @@
     html { scroll-behavior: auto; }
     .js .rv { opacity: 1; transform: none; transition: none; }
     .blink, .bob, .tw, .cursor, .steam, .live,
-    .tl-row--now .tl-bar::after { animation: none; }
+    .cull, .sky-sun, .sky-moon, .s-eye, .s-led, .lamp-cone, .lamp-bulb,
+    .serve, .swing, .hit { animation: none; }
     .tw { opacity: .8; }
-    .tl-row, .tl-row .tl-bar { transition: none; }
+    /* Each of these already rests in the state its animation ends up telling,
+       so stopping the animation leaves a lamp lit at dusk and a crowd with one
+       figure standing in front of it - not an unlit lamp and a blank sky. */
+    .lamp-cone { transform: none; }
     /* The pairing highlight stays - it is a colour change, not motion, and it
        is the point of the interaction. Only the marching dashes stop. */
     .vig:hover .flow, .vig.lit .flow { animation: none; }
@@ -1190,6 +1411,16 @@
 <main class="page">
   
 <header class="sheet">
+  <div class="ident">
+    <p class="eyebrow">Character sheet <span class="cursor" aria-hidden="true">&#9608;</span>
+      as of 30 Aug 2026</p>
+    <h1>Prasanna Allu</h1>
+    <p class="role-line">Senior Full-Stack Developer &amp; Technical Lead</p>
+    <p class="thesis">Eleven years of finding the manual thing and quietly making it run itself.</p>
+    <div class="facts"><div class="fact"><span class="k">Guild</span><span class="v">JLL Technologies &#183; Centre of Excellence</span></div><div class="fact"><span class="k">Region</span><span class="v">India</span></div><div class="fact"><span class="k">Languages</span><span class="v">English (C1 Advanced)</span></div></div>
+    <div class="pills"><span class="pill">Open to senior engineering and technical-lead roles</span><span class="pill">60-day notice</span><span class="pill">Will relocate</span><span class="pill">Employment visa required</span></div>
+    <nav class="links" aria-label="Contact"><a class="cv-a" href="cv.pdf" download><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 15.2h12" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Download CV</span></a><a href="mailto:allubalu3@live.com">allubalu3@live.com</a><a href="https://www.linkedin.com/in/prasanna-allu-7227066b/">LinkedIn</a><a href="https://github.com/allubalu">GitHub</a></nav>
+  </div>
   <div class="portrait">
     <div class="p-art"><svg viewBox="0 0 340 246" aria-hidden="true"><g transform="translate(14,24)"><ellipse cx="53.0" cy="91" rx="44.519999999999996" ry="3" fill="#2A2018" opacity=".1"/>
   <rect x="0" y="0" width="106" height="76" rx="8" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/>
@@ -1242,25 +1473,29 @@
 </g><path class="tw" style="animation-delay:0s" d="M236 131 l2.1 4.8999999999999995 l4.8999999999999995 2.1 l-4.8999999999999995 2.1 l-2.1 4.8999999999999995 l-2.1 -4.8999999999999995 l-4.8999999999999995 -2.1 l4.8999999999999995 -2.1 z" fill="var(--c4)"/><path class="tw" style="animation-delay:1.1s" d="M310 153 l1.5 3.5 l3.5 1.5 l-3.5 1.5 l-1.5 3.5 l-1.5 -3.5 l-3.5 -1.5 l3.5 -1.5 z" fill="var(--c4)"/><path class="tw" style="animation-delay:1.9s" d="M120 14 l1.7999999999999998 4.199999999999999 l4.199999999999999 1.7999999999999998 l-4.199999999999999 1.7999999999999998 l-1.7999999999999998 4.199999999999999 l-1.7999999999999998 -4.199999999999999 l-4.199999999999999 -1.7999999999999998 l4.199999999999999 -1.7999999999999998 z" fill="var(--c3)"/><rect x="10" y="228" width="320" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg></div>
     <div class="p-kit">
       <p class="q-lbl">Working in</p>
-      <div class="chips"><span class="chip">.NET Core</span><span class="chip">C#</span><span class="chip">Kafka</span><span class="chip">AKS</span><span class="chip">Docker</span><span class="chip">Azure Functions</span><span class="chip">Redis</span><span class="chip">Datadog</span></div>
+      <div class="chips"><span class="chip">Agentic AI</span><span class="chip">MCP</span><span class="chip">Claude</span><span class="chip">CrewAI</span><span class="chip">.NET Core</span><span class="chip">C#</span><span class="chip">Kafka</span><span class="chip">AKS</span><span class="chip">Azure Functions</span><span class="chip">Datadog</span></div>
     </div>
     <div class="p-creds"><p class="q-lbl">Credentials</p><div class="creds"><span class="cred" style="--era: var(--era-6)"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
-  <path d="M26.0 1.0 L30.8 5.0 L36.8 3.5 L39.4 9.2 L45.5 10.4 L45.4 16.7 L50.4 20.4 L47.5 26.0 L50.4 31.6 L45.4 35.3 L45.5 41.6 L39.4 42.8 L36.8 48.5 L30.8 47.0 L26.0 51.0 L21.2 47.0 L15.2 48.5 L12.6 42.8 L6.5 41.6 L6.6 35.3 L1.6 31.6 L4.5 26.0 L1.6 20.4 L6.6 16.7 L6.5 10.4 L12.6 9.2 L15.2 3.5 L21.2 5.0 Z" fill="var(--era)" opacity=".4"/>
-  <circle cx="26" cy="26" r="17.5" fill="var(--era)"/>
-  <g transform="translate(26,26)"><g stroke="var(--panel)" stroke-width="1.9" opacity=".92" fill="none"><path d="M-6-4 L4-6M-6-4 L2 5M4-6 L2 5"/></g><g fill="var(--panel)"><circle cx="-6" cy="-4" r="3.1"/><circle cx="4" cy="-6" r="3.1"/><circle cx="2" cy="5" r="3.1"/></g></g>
+  <path d="M18.5 29 L10.5 50.5 L19 46.6 L22 33.5 Z" fill="var(--era)" opacity=".5"/><path d="M33.5 29 L41.5 50.5 L33 46.6 L30 33.5 Z" fill="var(--era)" opacity=".72"/>
+  <path d="M26.0 1.0 L29.0 3.6 L32.7 2.2 L34.6 5.6 L38.5 5.6 L39.2 9.4 L42.9 10.8 L42.2 14.6 L45.2 17.1 L43.2 20.5 L45.2 23.9 L42.2 26.4 L42.9 30.2 L39.2 31.6 L38.5 35.4 L34.6 35.4 L32.7 38.8 L29.0 37.4 L26.0 40.0 L23.0 37.4 L19.3 38.8 L17.4 35.4 L13.5 35.4 L12.8 31.6 L9.1 30.3 L9.8 26.4 L6.8 23.9 L8.8 20.5 L6.8 17.1 L9.8 14.6 L9.1 10.8 L12.8 9.4 L13.5 5.6 L17.4 5.6 L19.3 2.2 L23.0 3.6 Z" fill="var(--era)" opacity=".42"/>
+  <circle cx="26" cy="20.5" r="15" fill="var(--era)"/><path d="M11 20.5 a15 15 0 0 1 15-15 a15 15 0 0 1 12.4 6.6 a19 19 0 0 0-26.4 12.9 Z" fill="var(--panel)" opacity=".17"/><circle cx="26" cy="20.5" r="11.6" fill="none" stroke="var(--panel)" stroke-width="1" opacity=".3"/>
+  <g transform="translate(26,20.5)"><g stroke="var(--panel)" stroke-width="1.9" opacity=".92" fill="none"><path d="M-6-4 L4-6M-6-4 L2 5M4-6 L2 5"/></g><g fill="var(--panel)"><circle cx="-6" cy="-4" r="3.1"/><circle cx="4" cy="-6" r="3.1"/><circle cx="2" cy="5" r="3.1"/></g></g>
 </g></svg><i>Agentic AI</i></span><span class="cred" style="--era: var(--era-6)"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
-  <path d="M26.0 1.0 L30.8 5.0 L36.8 3.5 L39.4 9.2 L45.5 10.4 L45.4 16.7 L50.4 20.4 L47.5 26.0 L50.4 31.6 L45.4 35.3 L45.5 41.6 L39.4 42.8 L36.8 48.5 L30.8 47.0 L26.0 51.0 L21.2 47.0 L15.2 48.5 L12.6 42.8 L6.5 41.6 L6.6 35.3 L1.6 31.6 L4.5 26.0 L1.6 20.4 L6.6 16.7 L6.5 10.4 L12.6 9.2 L15.2 3.5 L21.2 5.0 Z" fill="var(--era)" opacity=".22"/>
-  <circle cx="26" cy="26" r="17.5" fill="none" stroke="var(--era)" stroke-width="2.4" stroke-dasharray="4 4" opacity=".8"/>
-  <path d="M26 18 v9 l6 4" fill="none" stroke="var(--era)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-</g></svg><i>Cloud Architect<em>in progress</em></i></span><span class="cred" style="--era: var(--era-6)"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
-  <path d="M26.0 1.0 L30.8 5.0 L36.8 3.5 L39.4 9.2 L45.5 10.4 L45.4 16.7 L50.4 20.4 L47.5 26.0 L50.4 31.6 L45.4 35.3 L45.5 41.6 L39.4 42.8 L36.8 48.5 L30.8 47.0 L26.0 51.0 L21.2 47.0 L15.2 48.5 L12.6 42.8 L6.5 41.6 L6.6 35.3 L1.6 31.6 L4.5 26.0 L1.6 20.4 L6.6 16.7 L6.5 10.4 L12.6 9.2 L15.2 3.5 L21.2 5.0 Z" fill="var(--era)" opacity=".4"/>
-  <circle cx="26" cy="26" r="17.5" fill="var(--era)"/>
-  <g transform="translate(26,26)"><path d="M-9 4 a5.2 5.2 0 0 1 1.4-10 a7 7 0 0 1 13.2 1.6 a4.4 4.4 0 0 1-1.2 8.4z" fill="var(--panel)" opacity=".92"/></g>
+  
+  <path d="M26.0 1.0 L29.0 3.6 L32.7 2.2 L34.6 5.6 L38.5 5.6 L39.2 9.4 L42.9 10.8 L42.2 14.6 L45.2 17.1 L43.2 20.5 L45.2 23.9 L42.2 26.4 L42.9 30.2 L39.2 31.6 L38.5 35.4 L34.6 35.4 L32.7 38.8 L29.0 37.4 L26.0 40.0 L23.0 37.4 L19.3 38.8 L17.4 35.4 L13.5 35.4 L12.8 31.6 L9.1 30.3 L9.8 26.4 L6.8 23.9 L8.8 20.5 L6.8 17.1 L9.8 14.6 L9.1 10.8 L12.8 9.4 L13.5 5.6 L17.4 5.6 L19.3 2.2 L23.0 3.6 Z" fill="var(--era)" opacity=".2"/>
+  <circle cx="26" cy="20.5" r="15" fill="var(--panel)" opacity=".45"/><circle cx="26" cy="20.5" r="15" fill="none" stroke="var(--era)" stroke-width="2.3" stroke-dasharray="4.2 4.2" opacity=".85"/>
+  <path d="M26 13.9 v7.1 l4.8 3.1" fill="none" stroke="var(--era)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</g></svg><i>Claude Architect<em>in progress</em></i></span><span class="cred" style="--era: var(--era-6)"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
+  <path d="M18.5 29 L10.5 50.5 L19 46.6 L22 33.5 Z" fill="var(--era)" opacity=".5"/><path d="M33.5 29 L41.5 50.5 L33 46.6 L30 33.5 Z" fill="var(--era)" opacity=".72"/>
+  <path d="M26.0 1.0 L29.0 3.6 L32.7 2.2 L34.6 5.6 L38.5 5.6 L39.2 9.4 L42.9 10.8 L42.2 14.6 L45.2 17.1 L43.2 20.5 L45.2 23.9 L42.2 26.4 L42.9 30.2 L39.2 31.6 L38.5 35.4 L34.6 35.4 L32.7 38.8 L29.0 37.4 L26.0 40.0 L23.0 37.4 L19.3 38.8 L17.4 35.4 L13.5 35.4 L12.8 31.6 L9.1 30.3 L9.8 26.4 L6.8 23.9 L8.8 20.5 L6.8 17.1 L9.8 14.6 L9.1 10.8 L12.8 9.4 L13.5 5.6 L17.4 5.6 L19.3 2.2 L23.0 3.6 Z" fill="var(--era)" opacity=".42"/>
+  <circle cx="26" cy="20.5" r="15" fill="var(--era)"/><path d="M11 20.5 a15 15 0 0 1 15-15 a15 15 0 0 1 12.4 6.6 a19 19 0 0 0-26.4 12.9 Z" fill="var(--panel)" opacity=".17"/><circle cx="26" cy="20.5" r="11.6" fill="none" stroke="var(--panel)" stroke-width="1" opacity=".3"/>
+  <g transform="translate(26,20.5)"><path d="M-9 4 a5.2 5.2 0 0 1 1.4-10 a7 7 0 0 1 13.2 1.6 a4.4 4.4 0 0 1-1.2 8.4z" fill="var(--panel)" opacity=".92"/></g>
 </g></svg><i>Azure Developer</i></span></div></div>
     <div class="p-now">
       <p class="q-lbl">Current quest</p>
       <p class="p-role">Senior Full-Stack Developer<span class="live" aria-hidden="true"></span></p>
       <p class="p-org">JLL Technologies &#183; 2 yrs 4 mo in role</p>
+      <p class="p-next"><i>Next</i> <span>AI Engineer</span></p>
     </div>
     <div class="p-yrs">
       <b>11</b>
@@ -1268,18 +1503,8 @@
         <em>since Apr 2015</em></span>
     </div>
   </div>
-  <div class="ident">
-    <p class="eyebrow">Character sheet <span class="cursor" aria-hidden="true">&#9608;</span>
-      as of 30 Aug 2026</p>
-    <h1>Prasanna Allu</h1>
-    <p class="role-line">Senior Full-Stack Developer &amp; Technical Lead</p>
-    <p class="thesis">Eleven years of finding the manual thing and quietly making it run itself.</p>
-    <div class="facts"><div class="fact"><span class="k">Guild</span><span class="v">JLL Technologies &#183; Centre of Excellence</span></div><div class="fact"><span class="k">Region</span><span class="v">India</span></div><div class="fact"><span class="k">Languages</span><span class="v">English (C1 Advanced)</span></div></div>
-    <div class="pills"><span class="pill">Open to senior engineering and technical-lead roles</span><span class="pill">60-day notice</span><span class="pill">Will relocate</span><span class="pill">Employment visa required</span></div>
-    <nav class="links" aria-label="Contact"><button class="cv-a cv-a--print" type="button" data-print="1"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 15.2h12" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Download CV</span></button><a href="mailto:allubalu3@live.com">allubalu3@live.com</a><a href="https://www.linkedin.com/in/prasanna-allu-7227066b/">LinkedIn</a><a href="https://github.com/allubalu">GitHub</a></nav>
-  </div>
 </header>
-  <section class="stats" aria-label="Headline numbers"><div class="stat rv" style="--era: var(--era-2)"><span class="n">150+</span><span class="l">Apps integrated</span></div><div class="stat stat--hero rv" style="--era: var(--era-3)"><span class="n">2M+</span><span class="l">Requests / day</span><span class="q">at sub-200ms latency</span></div><div class="stat rv" style="--era: var(--era-4)"><span class="n">6</span><span class="l">Awards</span></div><div class="stat rv" style="--era: var(--era-5)"><span class="n">4</span><span class="l">Industries</span><span class="q">health, food, property, IT</span></div><div class="stat rv" style="--era: var(--era-6)"><span class="n">11</span><span class="l">Years shipping</span></div></section>
+  <section class="stats" aria-label="Headline numbers"><div class="stat rv" style="--era: var(--era-2)"><span class="n">150+</span><span class="l">Apps integrated</span></div><div class="stat stat--hero rv" style="--era: var(--era-3)"><span class="n">2M+</span><span class="l">Requests / day</span><span class="q">at sub-200ms latency</span></div><div class="stat rv" style="--era: var(--era-4)"><span class="n">6</span><span class="l">Awards</span><span class="q">all at JLL</span></div><div class="stat rv" style="--era: var(--era-5)"><span class="n">4</span><span class="l">Industries</span><span class="q">health, food, property, IT</span></div><div class="stat rv" style="--era: var(--era-6)"><span class="n">11</span><span class="l">Years shipping</span></div></section>
   
 <section class="pro rv" id="prologue" aria-labelledby="pro-h">
   <h2 class="pro-k" id="pro-h">Prologue</h2>
@@ -1292,122 +1517,16 @@
   <nav class="toc rv" aria-label="Sections of this page"><span class="toc-k">In this log</span><a href="#route">The route</a><a href="#log">Quest log</a><a href="#awards">Achievements</a><a href="#voices">Voices</a><a href="#inventory">Inventory</a><a href="#scrolls">Scrolls</a><a href="#origin">Origin</a></nav>
   
 <section class="map-wrap rv" id="route" aria-label="The route, in order">
-  <h2 class="shead"><span>The route</span> <em>every role in order, and how long each one ran</em></h2>
-  <div class="tl">
-    <div class="tl-axis" aria-hidden="true">
-      <span></span>
-      <span class="tl-track tl-ticks"><span class="tl-t" style="--at:10.76%">2010</span><span class="tl-t" style="--at:37.67%">2015</span><span class="tl-t" style="--at:64.57%">2020</span><span class="tl-t" style="--at:91.48%">2025</span></span>
-      <span></span>
-    </div>
-    
-  <div class="tl-grp" style="--era: var(--era-1);
-       --era-z: var(--era-1)">
-    <div class="tl-gh">
-      <span class="tl-gn">Computer science</span>
-      <span class="tl-track tl-track--band"
-            style="--at: 0.0%; --len: 32.29%">
-        <span class="tl-band"></span></span>
-      <span class="tl-d">6y</span>
-    </div>
-    
-    <div class="tl-row" style="--era: var(--era-1);
-         --at: 0.0%; --len: 16.14%">
-      <span class="tl-lb"><b>Diploma, CSE</b>
-        <i>2008</i></span>
-      <span class="tl-track"><span class="tl-bar"></span></span>
-      <span class="tl-d">3y</span>
-      <span class="sr">3 yrs from
-        2008.</span>
-    </div>
-    <div class="tl-row" style="--era: var(--era-1);
-         --at: 16.14%; --len: 16.14%">
-      <span class="tl-lb"><b>B.Tech, CSE</b>
-        <i>2011</i></span>
-      <span class="tl-track"><span class="tl-bar"></span></span>
-      <span class="tl-d">3y</span>
-      <span class="sr">3 yrs from
-        2011.</span>
-    </div>
+  <h2 class="shead"><span>The route</span> <em>every role in order, and where it goes next</em></h2>
+  <div class="mx" tabindex="0">
+    <svg viewBox="0 0 1000 176" role="img" aria-label="The route as a line: Computer science, then US healthcare, then Food safety, then Real estate &amp; IT.">
+      <g class="mx-zone" style="--era: var(--era-1)"><rect x="34.0" y="128" width="257.7" height="10" rx="5"/><text x="162.8" y="152">Computer science</text></g><g class="mx-zone" style="--era: var(--era-2)"><rect x="345.3" y="128" width="139.6" height="10" rx="5"/><text x="415.1" y="152">US healthcare</text></g><g class="mx-zone" style="--era: var(--era-3)"><rect x="484.9" y="128" width="60.8" height="10" rx="5"/><text x="515.3" y="152">Food safety</text></g><g class="mx-zone" style="--era: var(--era-4)"><rect x="549.3" y="128" width="282.7" height="10" rx="5"/><text x="690.6" y="152">Real estate &amp; IT</text></g><line class="mx-seg mx-seg--edu" style="--era: var(--era-1)" x1="34.0" y1="66" x2="162.8" y2="66"/><line class="mx-seg mx-seg--edu" style="--era: var(--era-1)" x1="162.8" y1="66" x2="291.6" y2="66"/><line class="mx-seg" style="--era: var(--era-2)" x1="345.3" y1="66" x2="484.9" y2="66"/><line class="mx-seg" style="--era: var(--era-3)" x1="484.9" y1="66" x2="545.7" y2="66"/><line class="mx-seg" style="--era: var(--era-4)" x1="549.3" y1="66" x2="645.9" y2="66"/><line class="mx-seg" style="--era: var(--era-5)" x1="645.9" y1="66" x2="731.8" y2="66"/><line class="mx-seg" style="--era: var(--era-6)" x1="731.8" y1="66" x2="832.0" y2="66"/><g class="mx-now"><path d="M832.0 56 v20"/><text x="832.0" y="92">now</text></g><g class="mx-st mx-st--next" style="--era: var(--era-6)"><line class="mx-stub" x1="844.0" y1="66" x2="912.0" y2="66"/><circle class="mx-open" cx="922.0" cy="66" r="7"/><line class="mx-stem" x1="922.0" y1="53" x2="922.0" y2="46"/><text class="mx-n" text-anchor="middle" x="922.0" y="40">AI Engineer</text><text class="mx-m" text-anchor="middle" x="922.0" y="26">next</text></g><g class="mx-st" style="--era: var(--era-1)"><circle class="mx-int" cx="34.0" cy="66" r="8"/><circle class="mx-dot" cx="34.0" cy="66" r="4.4"/><line class="mx-stem" x1="34.0" y1="55" x2="34.0" y2="46"/><text class="mx-n" text-anchor="start" x="28.0" y="40">Diploma, CSE</text><text class="mx-m" text-anchor="start" x="28.0" y="26">study &#183; 3y</text></g><g class="mx-st" style="--era: var(--era-1)"><circle class="mx-dot" cx="162.8" cy="66" r="4.4"/><line class="mx-stem" x1="162.8" y1="77" x2="162.8" y2="86"/><text class="mx-n" text-anchor="middle" x="162.8" y="100">B.Tech, CSE</text><text class="mx-m" text-anchor="middle" x="162.8" y="115">study &#183; 3y</text></g><g class="mx-st" style="--era: var(--era-2)"><circle class="mx-int" cx="345.3" cy="66" r="8"/><circle class="mx-dot" cx="345.3" cy="66" r="4.4"/><line class="mx-stem" x1="345.3" y1="55" x2="345.3" y2="46"/><text class="mx-n" text-anchor="middle" x="345.3" y="40">Software Engineer</text><text class="mx-m" text-anchor="middle" x="345.3" y="26">Pratian &#183; 3y 3m</text></g><g class="mx-st" style="--era: var(--era-3)"><circle class="mx-dot" cx="484.9" cy="66" r="4.4"/><line class="mx-stem" x1="484.9" y1="77" x2="484.9" y2="86"/><text class="mx-n" text-anchor="middle" x="484.9" y="100">BI Developer</text><text class="mx-m" text-anchor="middle" x="484.9" y="115">Pratian &#183; 1y 5m</text></g><g class="mx-st" style="--era: var(--era-4)"><circle class="mx-int" cx="549.3" cy="66" r="8"/><circle class="mx-dot" cx="549.3" cy="66" r="4.4"/><line class="mx-stem" x1="549.3" y1="55" x2="549.3" y2="46"/><text class="mx-n" text-anchor="middle" x="549.3" y="40">Developer Associate</text><text class="mx-m" text-anchor="middle" x="549.3" y="26">JLLT &#183; 2y 3m</text></g><g class="mx-st" style="--era: var(--era-5)"><circle class="mx-dot" cx="645.9" cy="66" r="4.4"/><line class="mx-stem" x1="645.9" y1="77" x2="645.9" y2="86"/><text class="mx-n" text-anchor="middle" x="645.9" y="100">Software Engineer 2</text><text class="mx-m" text-anchor="middle" x="645.9" y="115">JLLT &#183; 2y</text></g><g class="mx-st" style="--era: var(--era-6)"><circle class="mx-dot" cx="731.8" cy="66" r="4.4"/><line class="mx-stem" x1="731.8" y1="55" x2="731.8" y2="46"/><text class="mx-n" text-anchor="middle" x="731.8" y="40">Senior Full-Stack Dev</text><text class="mx-m" text-anchor="middle" x="731.8" y="26">JLLT &#183; 2y 4m</text></g><text class="mx-yr" x="119.9" y="170">2010</text><text class="mx-yr" x="334.6" y="170">2015</text><text class="mx-yr" x="549.3" y="170">2020</text><text class="mx-yr" x="764.0" y="170">2025</text>
+    </svg>
   </div>
-  <div class="tl-grp" style="--era: var(--era-2);
-       --era-z: var(--era-2)">
-    <div class="tl-gh">
-      <span class="tl-gn">US healthcare</span>
-      <span class="tl-track tl-track--band"
-            style="--at: 39.01%; --len: 17.49%">
-        <span class="tl-band"></span></span>
-      <span class="tl-d">3y 3m</span>
-    </div>
-    
-    <div class="tl-row" style="--era: var(--era-2);
-         --at: 39.01%; --len: 17.49%">
-      <span class="tl-lb"><b>Software Engineer</b>
-        <i>2015 <span class="tl-org">Pratian</span></i></span>
-      <span class="tl-track"><span class="tl-bar"></span></span>
-      <span class="tl-d">3y 3m</span>
-      <span class="sr">3 yrs 3 mo from
-        Apr 2015.</span>
-    </div>
-  </div>
-  <div class="tl-grp" style="--era: var(--era-3);
-       --era-z: var(--era-3)">
-    <div class="tl-gh">
-      <span class="tl-gn">Food safety</span>
-      <span class="tl-track tl-track--band"
-            style="--at: 56.5%; --len: 7.62%">
-        <span class="tl-band"></span></span>
-      <span class="tl-d">1y 5m</span>
-    </div>
-    
-    <div class="tl-row" style="--era: var(--era-3);
-         --at: 56.5%; --len: 7.62%">
-      <span class="tl-lb"><b>BI Developer</b>
-        <i>2018 <span class="tl-org">Pratian</span></i></span>
-      <span class="tl-track"><span class="tl-bar"></span></span>
-      <span class="tl-d">1y 5m</span>
-      <span class="sr">1 yr 5 mo from
-        Jul 2018.</span>
-    </div>
-  </div>
-  <div class="tl-grp" style="--era: var(--era-4);
-       --era-z: var(--era-6)">
-    <div class="tl-gh">
-      <span class="tl-gn">Real estate &amp; IT</span>
-      <span class="tl-track tl-track--band"
-            style="--at: 64.57%; --len: 35.43%">
-        <span class="tl-band"></span></span>
-      <span class="tl-d">6y 7m</span>
-    </div>
-    
-    <div class="tl-row" style="--era: var(--era-4);
-         --at: 64.57%; --len: 12.11%">
-      <span class="tl-lb"><b>Developer Associate</b>
-        <i>2020 <span class="tl-org">JLLT</span></i></span>
-      <span class="tl-track"><span class="tl-bar"></span></span>
-      <span class="tl-d">2y 3m</span>
-      <span class="sr">2 yrs 3 mo from
-        Jan 2020.</span>
-    </div>
-    <div class="tl-row" style="--era: var(--era-5);
-         --at: 76.68%; --len: 10.76%">
-      <span class="tl-lb"><b>Software Engineer 2</b>
-        <i>2022 <span class="tl-org">JLLT</span></i></span>
-      <span class="tl-track"><span class="tl-bar"></span></span>
-      <span class="tl-d">2y</span>
-      <span class="sr">2 yrs from
-        Apr 2022.</span>
-    </div>
-    <div class="tl-row tl-row--now" style="--era: var(--era-6);
-         --at: 87.44%; --len: 12.56%">
-      <span class="tl-lb"><b>Senior Full-Stack Dev</b>
-        <i>2024 <span class="tl-org">JLLT</span></i></span>
-      <span class="tl-track"><span class="tl-bar"></span></span>
-      <span class="tl-d">2y 4m</span>
-      <span class="sr">2 yrs 4 mo from
-        Apr 2024.</span>
-    </div>
-  </div>
-  </div>
+  <ol class="sr"><li>Diploma, CSE. 3 yrs from 2008.</li><li>B.Tech, CSE. 3 yrs from 2011.</li><li>Software Engineer, Pratian. 3 yrs 3 mo from Apr 2015.</li><li>BI Developer, Pratian. 1 yr 5 mo from Jul 2018.</li><li>Developer Associate, JLLT. 2 yrs 3 mo from Jan 2020.</li><li>Software Engineer 2, JLLT. 2 yrs from Apr 2022.</li><li>Senior Full-Stack Dev, JLLT. 2 yrs 4 mo from Apr 2024 to now.</li><li>AI Engineer: next. Not a role held, and not dated.</li></ol>
+  <p class="mx-key">A ring is where the employer changed, the dashed opening
+    stretch is the six years of study, and the strip underneath is the industry
+    each stretch was in. The open stop past the end of the line is AI Engineer: where the work is going, and off the dated axis because it is not a post held and has no date.</p>
   <p class="thru"><span>The industry keeps changing. The problem underneath does not: something important, done by hand.</span></p>
 </section>
   
@@ -1436,11 +1555,7 @@
   </div>
   <div class="q-body">
     <p class="q-lbl">Objectives cleared</p>
-    <ul class="obj"><li data-b="0"><span class="o-n" aria-hidden="true">1</span>Engineered event-driven APIs processing <b class="fig">2M+</b> requests/day at sub-<b class="fig">200ms</b> latency.</li><li data-b="1"><span class="o-n" aria-hidden="true">2</span>Integrated a Claude-based bot into CI/CD pipelines for automated PR reviews, cutting review time by more than <b class="fig">50%</b>.</li><li>Led vulnerability remediation across the department using Snyk and Wiz, with nothing left open past its deadline.</li><li>Led end-to-end Datadog RUM and APM integration with correlation-ID tracing for faster debugging.</li><li>Designed custom Datadog alerts that proactively flag anomalies.</li><li data-b="5"><span class="o-n" aria-hidden="true">6</span>Built an MCP server as first-level support and onboarding contact for Technology Access Tool integration queries, fed end-to-end documentation to deflect business and technical users away from developer escalations.</li><li class="obj-more"><details><summary>3 more in this role</summary><ul class="obj"><li>Delivered a CrewAI + Microsoft Teams multi-agent prototype that read conversations and meeting transcripts, derived action items and auto-drafted emails for review.</li><li>Delivered a RAG-based financial-analytics proof-of-concept for natural-language data retrieval.</li><li>Mentored 3 developers on modern frameworks and AI-tooling adoption.</li></ul></details></li></ul>
-    <p class="q-lbl">Stack</p>
-    <div class="chips"><span class="chip">.NET Core</span><span class="chip">C#</span><span class="chip">Kafka</span><span class="chip">AKS</span><span class="chip">Docker</span><span class="chip">Azure Functions</span><span class="chip">Redis</span><span class="chip">Datadog</span><span class="chip">Splunk</span><span class="chip">Claude</span><span class="chip">MCP</span><span class="chip">CrewAI</span></div>
-  </div>
-  <div class="q-art"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(2,16) scale(0.6,0.6)" style="--shirt:var(--c1);--skin:#C98B5E;--tie:var(--c1)">
+    <div class="q-pairs"><div class="q-pair"><p class="q-o" data-b="0"><span class="o-n" aria-hidden="true">1</span>Engineered event-driven APIs processing <b class="fig">2M+</b> requests/day at sub-<b class="fig">200ms</b> latency.</p><div class="q-vigs"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(2,16) scale(0.6,0.6)" style="--shirt:var(--c1);--skin:#C98B5E;--tie:var(--c1)">
   <path d="M18 88 q-8 10-2 20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M72 86 q16-10 22-26" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="16" cy="108" r="6" fill="var(--skin)"/><circle cx="96" cy="58" r="6" fill="var(--skin)"/>
   <path d="M13 120 v-30 c0-17 14-31 32-31 s32 14 32 31 v30 z" fill="var(--shirt)"/><path d="M13 120 v-30 c0-17 14-31 32-31 c-11 3-19 14-19 31 v30 z" fill="#2A2018" opacity=".13"/>
   <path d="M36 43 h18 v19 q-9 6-18 0z" fill="#A96F45"/>
@@ -1453,7 +1568,7 @@
         fill="none" stroke-linecap="round"/>
   <g class="blink"><ellipse cx="34" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><ellipse cx="56" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><circle cx="35.4" cy="31.2" r="1.35" fill="#FFFFFF"/><circle cx="57.4" cy="31.2" r="1.35" fill="#FFFFFF"/></g>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><path d="M78 100 h168M78 100 V14" stroke="var(--shade)" stroke-width="2.4" stroke-linecap="round"/><path d="M82 92 C 114 86, 136 68, 160 48 S 214 22, 242 15" fill="none" stroke="var(--c2)" stroke-width="4" stroke-linecap="round"/><circle cx="242" cy="15" r="5.5" fill="var(--c4)" stroke="var(--panel)" stroke-width="2.6"/><g stroke="var(--c2)" stroke-width="2.4" stroke-linecap="round" opacity=".3"><path d="M196 26 h16"/><path d="M196 37 h8"/><path d="M196 48 h16"/></g><text x="150" y="88" font-family="Baloo 2, system-ui, sans-serif" font-size="26" font-weight="800" fill="var(--c2)" text-anchor="start">2M+</text></svg><figcaption><span class="sr">Illustrates objective 1. </span>requests / day, at sub-200ms latency</figcaption></figure><figure class="vig" data-b="1"><span class="v-n" aria-hidden="true">2</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,20)"><ellipse cx="23.0" cy="39.4" rx="13.200000000000001" ry="3" fill="#2A2018" opacity=".1"/><rect x="0" y="0.0" width="24" height="34" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><rect x="0" y="0.0" width="24" height="34" rx="5" fill="#2A2018" opacity=".07"/><rect x="11" y="7.699999999999999" width="24" height="34" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><rect x="11" y="7.699999999999999" width="24" height="34" rx="5" fill="#2A2018" opacity=".07"/><rect x="22" y="15.399999999999999" width="24" height="34" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><g stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" opacity=".6"><path d="M30 29.4 h8M30 39.4 h8M30 49.4 h0"/></g></g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M56 46 H73"/><path d="M72 37 l9 9 l-9 9"/></g><g transform="translate(90,16) scale(0.74)"><ellipse cx="28" cy="60" rx="22" ry="3.4" fill="#2A2018" opacity=".1"/><g class="bob">
+</g><path d="M78 100 h168M78 100 V14" stroke="var(--shade)" stroke-width="2.4" stroke-linecap="round"/><path d="M82 92 C 114 86, 136 68, 160 48 S 214 22, 242 15" fill="none" stroke="var(--c2)" stroke-width="4" stroke-linecap="round"/><circle cx="242" cy="15" r="5.5" fill="var(--c4)" stroke="var(--panel)" stroke-width="2.6"/><g stroke="var(--c2)" stroke-width="2.4" stroke-linecap="round" opacity=".3"><path d="M196 26 h16"/><path d="M196 37 h8"/><path d="M196 48 h16"/></g><text x="150" y="88" font-family="Baloo 2, system-ui, sans-serif" font-size="26" font-weight="800" fill="var(--c2)" text-anchor="start">2M+</text></svg><figcaption><span class="sr">Illustrates objective 1. </span>requests / day, at sub-200ms latency</figcaption></figure></div></div><div class="q-pair"><p class="q-o" data-b="1"><span class="o-n" aria-hidden="true">2</span>Integrated a Claude-based bot into CI/CD pipelines for automated PR reviews, cutting review time by more than <b class="fig">50%</b>.</p><div class="q-vigs"><figure class="vig" data-b="1"><span class="v-n" aria-hidden="true">2</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,20)"><ellipse cx="23.0" cy="39.4" rx="13.200000000000001" ry="3" fill="#2A2018" opacity=".1"/><rect x="0" y="0.0" width="24" height="34" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><rect x="0" y="0.0" width="24" height="34" rx="5" fill="#2A2018" opacity=".07"/><rect x="11" y="7.699999999999999" width="24" height="34" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><rect x="11" y="7.699999999999999" width="24" height="34" rx="5" fill="#2A2018" opacity=".07"/><rect x="22" y="15.399999999999999" width="24" height="34" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><g stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" opacity=".6"><path d="M30 29.4 h8M30 39.4 h8M30 49.4 h0"/></g></g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M56 46 H73"/><path d="M72 37 l9 9 l-9 9"/></g><g transform="translate(90,16) scale(0.74)"><ellipse cx="28" cy="60" rx="22" ry="3.4" fill="#2A2018" opacity=".1"/><g class="bob">
   <path d="M28 14 v-8" stroke="var(--c4)" stroke-width="3"
         stroke-linecap="round"/>
   <circle cx="28" cy="4" r="4.5" fill="var(--c5)"/>
@@ -1480,7 +1595,7 @@
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><path class="tw" style="animation-delay:0s" d="M184 12 l1.7999999999999998 4.199999999999999 l4.199999999999999 1.7999999999999998 l-4.199999999999999 1.7999999999999998 l-1.7999999999999998 4.199999999999999 l-1.7999999999999998 -4.199999999999999 l-4.199999999999999 -1.7999999999999998 l4.199999999999999 -1.7999999999999998 z" fill="var(--c4)"/><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 2. </span>50% faster PR review</figcaption></figure><figure class="vig" data-b="5"><span class="v-n" aria-hidden="true">6</span><svg viewBox="0 0 260 124" aria-hidden="true"><text x="6" y="36" font-family="Baloo 2, system-ui, sans-serif" font-size="24" font-weight="800" fill="var(--c5)" opacity=".85">?</text><text x="30" y="62" font-family="Baloo 2, system-ui, sans-serif" font-size="18" font-weight="800" fill="var(--c5)" opacity=".6">?</text><text x="8" y="88" font-family="Baloo 2, system-ui, sans-serif" font-size="20" font-weight="800" fill="var(--c5)" opacity=".7">?</text><path d="M60 12 v100" stroke="var(--edge)" stroke-width="2.4" stroke-dasharray="7 6" stroke-linecap="round"/><g transform="translate(74,22)">
+</g><path class="tw" style="animation-delay:0s" d="M184 12 l1.7999999999999998 4.199999999999999 l4.199999999999999 1.7999999999999998 l-4.199999999999999 1.7999999999999998 l-1.7999999999999998 4.199999999999999 l-1.7999999999999998 -4.199999999999999 l-4.199999999999999 -1.7999999999999998 l4.199999999999999 -1.7999999999999998 z" fill="var(--c4)"/><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 2. </span>50% faster PR review</figcaption></figure></div></div><div class="q-pair"><p class="q-o" data-b="5"><span class="o-n" aria-hidden="true">3</span>Built an MCP server as first-level support and onboarding contact for Technology Access Tool integration queries, fed end-to-end documentation to deflect business and technical users away from developer escalations.</p><div class="q-vigs"><figure class="vig" data-b="5"><span class="v-n" aria-hidden="true">3</span><svg viewBox="0 0 260 124" aria-hidden="true"><text x="6" y="36" font-family="Baloo 2, system-ui, sans-serif" font-size="24" font-weight="800" fill="var(--c5)" opacity=".85">?</text><text x="30" y="62" font-family="Baloo 2, system-ui, sans-serif" font-size="18" font-weight="800" fill="var(--c5)" opacity=".6">?</text><text x="8" y="88" font-family="Baloo 2, system-ui, sans-serif" font-size="20" font-weight="800" fill="var(--c5)" opacity=".7">?</text><path d="M60 12 v100" stroke="var(--edge)" stroke-width="2.4" stroke-dasharray="7 6" stroke-linecap="round"/><g transform="translate(74,22)">
   <rect x="0" y="0" width="76" height="62" rx="8" fill="var(--panel)"
         stroke="var(--edge)" stroke-width="1.4"/>
   <g stroke="var(--c2)" stroke-width="2.6" stroke-linecap="round"><path d="M14 22 h48M14 34 h48M14 46 h28"/></g><text x="14" y="58" font-family="Baloo 2, system-ui, sans-serif" font-size="13" font-weight="800" fill="var(--c1)" text-anchor="start">MCP</text>
@@ -1497,9 +1612,13 @@
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M37 43 q8 9 16 0 z" fill="#2A2018"/>
-</g><path class="tw" style="animation-delay:0.8s" d="M180 14 l1.7999999999999998 4.199999999999999 l4.199999999999999 1.7999999999999998 l-4.199999999999999 1.7999999999999998 l-1.7999999999999998 4.199999999999999 l-1.7999999999999998 -4.199999999999999 l-4.199999999999999 -1.7999999999999998 l4.199999999999999 -1.7999999999999998 z" fill="var(--c4)"/><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 6. </span>first-level support, via MCP</figcaption></figure></div>
+</g><path class="tw" style="animation-delay:0.8s" d="M180 14 l1.7999999999999998 4.199999999999999 l4.199999999999999 1.7999999999999998 l-4.199999999999999 1.7999999999999998 l-1.7999999999999998 4.199999999999999 l-1.7999999999999998 -4.199999999999999 l-4.199999999999999 -1.7999999999999998 l4.199999999999999 -1.7999999999999998 z" fill="var(--c4)"/><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 3. </span>first-level support, via MCP</figcaption></figure></div></div></div>
+    <details class="obj-more"><summary>6 more in this role</summary><ul class="obj"><li>Led vulnerability remediation across the department using Snyk and Wiz, with nothing left open past its deadline.</li><li>Led end-to-end Datadog RUM and APM integration with correlation-ID tracing for faster debugging.</li><li>Designed custom Datadog alerts that proactively flag anomalies.</li><li>Delivered a CrewAI + Microsoft Teams multi-agent prototype that read conversations and meeting transcripts, derived action items and auto-drafted emails for review.</li><li>Delivered a RAG-based financial-analytics proof-of-concept for natural-language data retrieval.</li><li>Mentored 3 developers on modern frameworks and AI-tooling adoption.</li></ul></details>
+    <p class="q-lbl q-lbl--stack">Stack</p>
+    <div class="chips"><span class="chip">.NET Core</span><span class="chip">C#</span><span class="chip">Kafka</span><span class="chip">AKS</span><span class="chip">Docker</span><span class="chip">Azure Functions</span><span class="chip">Redis</span><span class="chip">Datadog</span><span class="chip">Splunk</span><span class="chip">Claude</span><span class="chip">MCP</span><span class="chip">CrewAI</span></div>
+  </div>
 </article><div class="rankup rv"><span class="ru-k">Rank up</span><span class="ru-v">Software Engineer 2 <b>&#8594;</b> <strong>Senior Full-Stack Developer</strong></span><span class="ru-d">Apr 2024</span></div>
-<article class="quest quest--wide rv" style="--era: var(--era-5)">
+<article class="quest rv" style="--era: var(--era-5)">
   <div class="q-strip">
     <span class="q-no" aria-hidden="true">04</span>
     <h4>Software Engineer 2</h4>
@@ -1507,11 +1626,7 @@
   </div>
   <div class="q-body">
     <p class="q-lbl">Objectives cleared</p>
-    <ul class="obj"><li data-b="0"><span class="o-n" aria-hidden="true">1</span>Led legacy-system decommissioning, migrating applications from ASP.NET MVC to .NET Core and modernising the underlying architecture.</li><li data-b="1"><span class="o-n" aria-hidden="true">2</span>Adopted an event-based architecture using Azure Functions and Kafka, and implemented disaster recovery for high availability.</li><li data-b="2"><span class="o-n" aria-hidden="true">3</span>Built self-service Datadog and Splunk dashboards, filterable by consumer, letting teams confirm API success or failure and drill into logs independently, 24/7. Cut issue-debugging effort by <b class="fig">70%</b>.</li></ul>
-    <p class="q-lbl">Stack</p>
-    <div class="chips"><span class="chip">.NET Core</span><span class="chip">ASP.NET MVC</span><span class="chip">SQL Server</span><span class="chip">Azure</span><span class="chip">App Service</span><span class="chip">Azure Functions</span><span class="chip">Kafka</span><span class="chip">Redis</span><span class="chip">Datadog</span><span class="chip">Splunk</span></div>
-  </div>
-  <div class="q-art"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(6,25.0)">
+    <div class="q-pairs"><div class="q-pair"><p class="q-o" data-b="0"><span class="o-n" aria-hidden="true">1</span>Led legacy-system decommissioning, migrating applications from ASP.NET MVC to .NET Core and modernising the underlying architecture.</p><div class="q-vigs"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(6,25.0)">
   <rect x="0" y="0" width="52" height="52" rx="8" fill="var(--panel)"
         stroke="var(--edge)" stroke-width="1.4"/>
   <rect x="7.8" y="9.8" width="36.4" height="6.2" rx="2" fill="var(--ink-3)" opacity="0.78"/><rect x="7.8" y="19.7" width="36.4" height="6.2" rx="2" fill="var(--ink-3)" opacity="0.64"/><rect x="7.8" y="29.6" width="36.4" height="6.2" rx="2" fill="var(--ink-3)" opacity="0.50"/><text x="7.8" y="46.54" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--ink-3)" text-anchor="start">MVC</text><path d="M4.7 4.7 L47.3 47.3" stroke="var(--del)" stroke-width="3" stroke-linecap="round" opacity=".85"/>
@@ -1532,7 +1647,7 @@
         fill="none" stroke-linecap="round"/>
   <g class="blink"><ellipse cx="34" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><ellipse cx="56" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><circle cx="35.4" cy="31.2" r="1.35" fill="#FFFFFF"/><circle cx="57.4" cy="31.2" r="1.35" fill="#FFFFFF"/></g>
   <path d="M40 45 h10" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 1. </span>off ASP.NET MVC, onto .NET Core</figcaption></figure><figure class="vig" data-b="1"><span class="v-n" aria-hidden="true">2</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,28)"><rect x="0" y="0" width="16" height="16" rx="4" fill="var(--c2)" opacity="0.95"/><rect x="22" y="0" width="16" height="16" rx="4" fill="var(--c2)" opacity="0.80"/><rect x="44" y="0" width="16" height="16" rx="4" fill="var(--c2)" opacity="0.65"/><rect x="66" y="0" width="16" height="16" rx="4" fill="var(--c2)" opacity="0.50"/></g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M94 36 H103"/><path d="M102 27 l9 9 l-9 9"/></g><g transform="translate(120,8)">
+</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 1. </span>off ASP.NET MVC, onto .NET Core</figcaption></figure></div></div><div class="q-pair"><p class="q-o" data-b="1"><span class="o-n" aria-hidden="true">2</span>Adopted an event-based architecture using Azure Functions and Kafka, and implemented disaster recovery for high availability.</p><div class="q-vigs"><figure class="vig" data-b="1"><span class="v-n" aria-hidden="true">2</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,28)"><rect x="0" y="0" width="16" height="16" rx="4" fill="var(--c2)" opacity="0.95"/><rect x="22" y="0" width="16" height="16" rx="4" fill="var(--c2)" opacity="0.80"/><rect x="44" y="0" width="16" height="16" rx="4" fill="var(--c2)" opacity="0.65"/><rect x="66" y="0" width="16" height="16" rx="4" fill="var(--c2)" opacity="0.50"/></g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M94 36 H103"/><path d="M102 27 l9 9 l-9 9"/></g><g transform="translate(120,8)">
   <rect x="0" y="0" width="68" height="34" rx="8" fill="var(--panel)"
         stroke="var(--edge)" stroke-width="1.4"/>
   <text x="10" y="21" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-3)" text-anchor="start">region A</text><path d="M60 10 l8 8M68 10 l-8 8" stroke="var(--del)" stroke-width="2.6" stroke-linecap="round"/>
@@ -1553,7 +1668,7 @@
         fill="none" stroke-linecap="round"/>
   <g class="blink"><ellipse cx="34" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><ellipse cx="56" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><circle cx="35.4" cy="31.2" r="1.35" fill="#FFFFFF"/><circle cx="57.4" cy="31.2" r="1.35" fill="#FFFFFF"/></g>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g></svg><figcaption><span class="sr">Illustrates objective 2. </span>one region fails, the other serves</figcaption></figure><figure class="vig" data-b="2"><span class="v-n" aria-hidden="true">3</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,14)">
+</g></svg><figcaption><span class="sr">Illustrates objective 2. </span>one region fails, the other serves</figcaption></figure></div></div><div class="q-pair"><p class="q-o" data-b="2"><span class="o-n" aria-hidden="true">3</span>Built self-service Datadog and Splunk dashboards, filterable by consumer, letting teams confirm API success or failure and drill into logs independently, 24/7. Cut issue-debugging effort by <b class="fig">70%</b>.</p><div class="q-vigs"><figure class="vig" data-b="2"><span class="v-n" aria-hidden="true">3</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,14)">
   <rect x="0" y="0" width="92" height="66" rx="8" fill="var(--panel)"
         stroke="var(--edge)" stroke-width="1.4"/>
   <rect x="12" y="40" width="10" height="18" rx="2.5" fill="var(--c3)"/><rect x="27" y="30" width="10" height="28" rx="2.5" fill="var(--c3)"/><rect x="42" y="22" width="10" height="36" rx="2.5" fill="var(--c3)"/><rect x="57" y="34" width="10" height="24" rx="2.5" fill="var(--c3)"/><rect x="72" y="16" width="10" height="42" rx="2.5" fill="var(--c3)"/>
@@ -1574,9 +1689,13 @@
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 3. </span>70% less debugging effort</figcaption></figure></div>
+</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 3. </span>70% less debugging effort</figcaption></figure></div></div></div>
+    
+    <p class="q-lbl q-lbl--stack">Stack</p>
+    <div class="chips"><span class="chip">.NET Core</span><span class="chip">ASP.NET MVC</span><span class="chip">SQL Server</span><span class="chip">Azure</span><span class="chip">App Service</span><span class="chip">Azure Functions</span><span class="chip">Kafka</span><span class="chip">Redis</span><span class="chip">Datadog</span><span class="chip">Splunk</span></div>
+  </div>
 </article><div class="rankup rv"><span class="ru-k">Rank up</span><span class="ru-v">Developer Associate <b>&#8594;</b> <strong>Software Engineer 2</strong></span><span class="ru-d">Apr 2022</span></div>
-<article class="quest quest--wide rv" style="--era: var(--era-4)">
+<article class="quest rv" style="--era: var(--era-4)">
   <div class="q-strip">
     <span class="q-no" aria-hidden="true">03</span>
     <h4>Developer Associate</h4>
@@ -1584,11 +1703,7 @@
   </div>
   <div class="q-body">
     <p class="q-lbl">Objectives cleared</p>
-    <ul class="obj"><li data-b="0"><span class="o-n" aria-hidden="true">1</span>Integrated organisation-level controlled authorisation in place of application-specific access, standardising and simplifying permissions management.</li><li data-b="1"><span class="o-n" aria-hidden="true">2</span>Partnered with teams across the globe to define integration strategies and deliver well-documented, maintainable solutions.</li></ul>
-    <p class="q-lbl">Stack</p>
-    <div class="chips"><span class="chip">OutSystems</span><span class="chip">.NET</span><span class="chip">SQL Server</span></div>
-  </div>
-  <div class="q-art"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><rect x="4" y="10" width="38" height="22" rx="6" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><g stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" opacity=".5"><path d="M12 18 h19M12 25 h13"/></g><g transform="translate(40,4) scale(0.3)">
+    <div class="q-pairs"><div class="q-pair"><p class="q-o" data-b="0"><span class="o-n" aria-hidden="true">1</span>Integrated organisation-level controlled authorisation in place of application-specific access, standardising and simplifying permissions management.</p><div class="q-vigs"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><rect x="4" y="10" width="38" height="22" rx="6" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><g stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" opacity=".5"><path d="M12 18 h19M12 25 h13"/></g><g transform="translate(40,4) scale(0.3)">
   <path d="M26 24 h24" stroke="var(--c5)" stroke-width="4.4" stroke-linecap="round"/>
   <rect x="6" y="0" width="20" height="34" rx="5" fill="var(--c5)"/>
   <rect x="6" y="0" width="10" height="34" rx="5" fill="#2A2018" opacity=".13"/>
@@ -1624,7 +1739,7 @@
   <g stroke="var(--panel)" stroke-width="2.2" opacity=".8" stroke-linecap="round">
     <path d="M21 10 h13M21 15 h13M21 20 h8"/>
   </g>
-</g><text x="25" y="114" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-3)" text-anchor="middle">per app</text><text x="160" y="114" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-2)" text-anchor="middle">one gate</text></svg><figcaption><span class="sr">Illustrates objective 1. </span>one authorisation, organisation-wide</figcaption></figure><figure class="vig" data-b="1"><span class="v-n" aria-hidden="true">2</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,32) scale(0.96)">
+</g><text x="25" y="114" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-3)" text-anchor="middle">per app</text><text x="160" y="114" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-2)" text-anchor="middle">one gate</text></svg><figcaption><span class="sr">Illustrates objective 1. </span>one authorisation, organisation-wide</figcaption></figure></div></div><div class="q-pair"><p class="q-o" data-b="1"><span class="o-n" aria-hidden="true">2</span>Partnered with teams across the globe to define integration strategies and deliver well-documented, maintainable solutions.</p><div class="q-vigs"><figure class="vig" data-b="1"><span class="v-n" aria-hidden="true">2</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,32) scale(0.96)">
   <circle cx="26" cy="26" r="24" fill="var(--c2)" opacity=".16"/>
   <circle cx="26" cy="26" r="24" fill="none" stroke="var(--c2)" stroke-width="2.4"
           opacity=".55"/>
@@ -1633,7 +1748,7 @@
     <ellipse cx="26" cy="26" rx="11" ry="24"/>
     <path d="M7.5 13 q18.5 7 37 0M7.5 39 q18.5-7 37 0"/>
   </g>
-</g><g transform="translate(14,44)"><circle cx="0" cy="0" r="8.5" fill="#E3B08A"/><path d="M-8.5 -1 a8.5 8.5 0 0 1 17.0 0 a8.5 5.27 0 0 0 -17.0 0z" fill="#241C17"/><circle cx="-2.72" cy="1.36" r="0.935" fill="#2A2018"/><circle cx="2.72" cy="1.36" r="0.935" fill="#2A2018"/></g><g transform="translate(48,34)"><circle cx="0" cy="0" r="8.5" fill="#8D5A3B"/><path d="M-8.5 -1 a8.5 8.5 0 0 1 17.0 0 a8.5 5.27 0 0 0 -17.0 0z" fill="#241C17"/><circle cx="-2.72" cy="1.36" r="0.935" fill="#2A2018"/><circle cx="2.72" cy="1.36" r="0.935" fill="#2A2018"/></g><g transform="translate(34,78)"><circle cx="0" cy="0" r="8.5" fill="#C98B5E"/><path d="M-8.5 -1 a8.5 8.5 0 0 1 17.0 0 a8.5 5.27 0 0 0 -17.0 0z" fill="#241C17"/><circle cx="-2.72" cy="1.36" r="0.935" fill="#2A2018"/><circle cx="2.72" cy="1.36" r="0.935" fill="#2A2018"/></g><g stroke="var(--c2)" stroke-width="2" stroke-dasharray="4 5" opacity=".6" fill="none"><path d="M56 40 q26-8 44 4M58 58 q22 0 42 2M56 76 q26 8 44-8"/></g><g transform="translate(104,24)"><ellipse cx="27.5" cy="60.7" rx="24.200000000000003" ry="3" fill="#2A2018" opacity=".1"/><rect x="0" y="0.0" width="44" height="56" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><rect x="0" y="0.0" width="44" height="56" rx="5" fill="#2A2018" opacity=".07"/><rect x="11" y="7.699999999999999" width="44" height="56" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><g stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" opacity=".6"><path d="M19 21.7 h28M19 31.7 h28M19 41.7 h20"/></g></g><g transform="translate(186,18) scale(-0.6,0.6) translate(-90,0)" style="--shirt:var(--c3);--skin:#C98B5E;--tie:var(--c1)">
+</g><g transform="translate(14,44)"><circle cx="0" cy="-8.67" r="2.89" fill="#241C17"/><circle cx="0" cy="0" r="8.50" fill="#241C17"/><circle cx="0" cy="1.53" r="7.22" fill="#E3B08A"/><circle cx="-2.63" cy="1.70" r="1.02" fill="#2A2018"/><circle cx="2.63" cy="1.70" r="1.02" fill="#2A2018"/><path d="M-1.70 4.42 q1.70 1.53 3.40 0" fill="none" stroke="#2A2018" stroke-width="0.94" stroke-linecap="round"/></g><g transform="translate(48,34)"><circle cx="0" cy="0" r="9.01" fill="#241C17"/><circle cx="0" cy="2.04" r="7.22" fill="#8D5A3B"/><circle cx="-2.63" cy="1.70" r="1.02" fill="#2A2018"/><circle cx="2.63" cy="1.70" r="1.02" fill="#2A2018"/><path d="M-1.70 4.42 q1.70 1.53 3.40 0" fill="none" stroke="#2A2018" stroke-width="0.94" stroke-linecap="round"/></g><g transform="translate(34,78)"><circle cx="0" cy="0" r="8.50" fill="#241C17"/><circle cx="0" cy="1.53" r="7.22" fill="#C98B5E"/><circle cx="-2.63" cy="1.70" r="1.02" fill="#2A2018"/><circle cx="2.63" cy="1.70" r="1.02" fill="#2A2018"/><path d="M-1.70 4.42 q1.70 1.53 3.40 0" fill="none" stroke="#2A2018" stroke-width="0.94" stroke-linecap="round"/></g><g stroke="var(--c2)" stroke-width="2" stroke-dasharray="4 5" opacity=".6" fill="none"><path d="M56 40 q26-8 44 4M58 58 q22 0 42 2M56 76 q26 8 44-8"/></g><g transform="translate(104,24)"><ellipse cx="27.5" cy="60.7" rx="24.200000000000003" ry="3" fill="#2A2018" opacity=".1"/><rect x="0" y="0.0" width="44" height="56" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><rect x="0" y="0.0" width="44" height="56" rx="5" fill="#2A2018" opacity=".07"/><rect x="11" y="7.699999999999999" width="44" height="56" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><g stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" opacity=".6"><path d="M19 21.7 h28M19 31.7 h28M19 41.7 h20"/></g></g><g transform="translate(186,18) scale(-0.6,0.6) translate(-90,0)" style="--shirt:var(--c3);--skin:#C98B5E;--tie:var(--c1)">
   <path d="M18 88 q-8 10-2 20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M72 86 q16-10 22-26" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="16" cy="108" r="6" fill="var(--skin)"/><circle cx="96" cy="58" r="6" fill="var(--skin)"/>
   <path d="M13 120 v-30 c0-17 14-31 32-31 s32 14 32 31 v30 z" fill="var(--shirt)"/><path d="M13 120 v-30 c0-17 14-31 32-31 c-11 3-19 14-19 31 v30 z" fill="#2A2018" opacity=".13"/>
   <path d="M36 43 h18 v19 q-9 6-18 0z" fill="#A96F45"/>
@@ -1646,7 +1761,11 @@
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 2. </span>integration strategies across regions</figcaption></figure></div>
+</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 2. </span>integration strategies across regions</figcaption></figure></div></div></div>
+    
+    <p class="q-lbl q-lbl--stack">Stack</p>
+    <div class="chips"><span class="chip">OutSystems</span><span class="chip">.NET</span><span class="chip">SQL Server</span></div>
+  </div>
 </article>
   <div class="c-drops rv">
     <h4 class="q-lbl">Systems shipped here</h4>
@@ -1706,7 +1825,7 @@
     <div class="c-narr"><p>Three-plus years on American healthcare and EDI systems: claims adjudication, billing gateways, medical-coding and HEDIS audit tools. Manual workloads came down by 40%.</p><p>Twenty-plus reusable components followed, taking 40% off feature-delivery time across teams, alongside ZAP vulnerability scanning and remediation spanning seven applications and fifty developers.</p><p>A final pivot into business intelligence, and the work that turned paper-based food-safety auditing into something a phone could do.</p></div>
   </div>
   
-<article class="quest quest--wide rv" style="--era: var(--era-3)">
+<article class="quest rv" style="--era: var(--era-3)">
   <div class="q-strip">
     <span class="q-no" aria-hidden="true">02</span>
     <h4>BI Developer</h4>
@@ -1714,11 +1833,7 @@
   </div>
   <div class="q-body">
     <p class="q-lbl">Objectives cleared</p>
-    <ul class="obj"><li data-b="0"><span class="o-n" aria-hidden="true">1</span>Built BI dashboards in Tableau and Power BI that improved audit-operations efficiency by <b class="fig">30%</b>.</li></ul>
-    <p class="q-lbl">Stack</p>
-    <div class="chips"><span class="chip">Tableau</span><span class="chip">Power BI</span><span class="chip">Android</span><span class="chip">iOS</span><span class="chip">Web</span></div>
-  </div>
-  <div class="q-art"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,14)">
+    <div class="q-pairs"><div class="q-pair"><p class="q-o" data-b="0"><span class="o-n" aria-hidden="true">1</span>Built BI dashboards in Tableau and Power BI that improved audit-operations efficiency by <b class="fig">30%</b>.</p><div class="q-vigs"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,14)">
   <rect x="0" y="0" width="92" height="66" rx="8" fill="var(--panel)"
         stroke="var(--edge)" stroke-width="1.4"/>
   <rect x="12" y="34" width="9" height="22" rx="2" fill="var(--c5)"/><rect x="26" y="22" width="9" height="34" rx="2" fill="var(--c5)"/><rect x="40" y="30" width="9" height="26" rx="2" fill="var(--c5)"/><rect x="54" y="16" width="9" height="40" rx="2" fill="var(--c5)"/><rect x="68" y="24" width="9" height="32" rx="2" fill="var(--c5)"/>
@@ -1739,7 +1854,7 @@
         fill="none" stroke-linecap="round"/>
   <g class="blink"><ellipse cx="34" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><ellipse cx="56" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><circle cx="35.4" cy="31.2" r="1.35" fill="#FFFFFF"/><circle cx="57.4" cy="31.2" r="1.35" fill="#FFFFFF"/></g>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 1. </span>30% better audit operations</figcaption></figure><figure class="vig"><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(6,26) scale(0.74)"><ellipse cx="29" cy="82" rx="26" ry="3" fill="#2A2018" opacity=".1"/>
+</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 1. </span>30% better audit operations</figcaption></figure></div></div><div class="q-pair q-pair--art"><div class="q-vigs"><figure class="vig"><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(6,26) scale(0.74)"><ellipse cx="29" cy="82" rx="26" ry="3" fill="#2A2018" opacity=".1"/>
   <rect x="0" y="6" width="58" height="74" rx="7" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/>
   <rect x="18" y="0" width="22" height="12" rx="4" fill="var(--shade)"/>
   <g stroke="var(--ink-3)" stroke-width="2.4" stroke-linecap="round" opacity=".75">
@@ -1764,9 +1879,13 @@
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M37 43 q8 9 16 0 z" fill="#2A2018"/>
-</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption>paper audits to mobile</figcaption></figure></div>
+</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption>paper audits to mobile</figcaption></figure></div></div></div>
+    
+    <p class="q-lbl q-lbl--stack">Stack</p>
+    <div class="chips"><span class="chip">Tableau</span><span class="chip">Power BI</span><span class="chip">Android</span><span class="chip">iOS</span><span class="chip">Web</span></div>
+  </div>
 </article>
-<article class="quest quest--wide rv" style="--era: var(--era-2)">
+<article class="quest rv" style="--era: var(--era-2)">
   <div class="q-strip">
     <span class="q-no" aria-hidden="true">01</span>
     <h4>Software Engineer</h4>
@@ -1774,11 +1893,7 @@
   </div>
   <div class="q-body">
     <p class="q-lbl">Objectives cleared</p>
-    <ul class="obj"><li data-b="0"><span class="o-n" aria-hidden="true">1</span>Delivered enterprise healthcare/EDI applications, reducing manual workloads by <b class="fig">40%</b>.</li><li data-b="1"><span class="o-n" aria-hidden="true">2</span>Created <b class="fig">20+</b> reusable components, cutting feature-delivery time by <b class="fig">40%</b> across teams.</li><li data-b="2"><span class="o-n" aria-hidden="true">3</span>Led vulnerability scanning and remediation using ZAP across 7 applications spanning 50 developers.</li></ul>
-    <p class="q-lbl">Stack</p>
-    <div class="chips"><span class="chip">ASP.NET MVC</span><span class="chip">Web API</span><span class="chip">C#</span><span class="chip">AngularJS</span><span class="chip">SQL Server</span><span class="chip">RabbitMQ</span><span class="chip">ZAP</span></div>
-  </div>
-  <div class="q-art"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,26)"><ellipse cx="16.5" cy="36.7" rx="12.100000000000001" ry="3" fill="#2A2018" opacity=".1"/><rect x="0" y="0.0" width="22" height="32" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><rect x="0" y="0.0" width="22" height="32" rx="5" fill="#2A2018" opacity=".07"/><rect x="11" y="7.699999999999999" width="22" height="32" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><g stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" opacity=".6"><path d="M19 21.7 h6M19 31.7 h6M19 41.7 h-2"/></g></g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M44 50 H57"/><path d="M56 41 l9 9 l-9 9"/></g><g transform="translate(74,18)">
+    <div class="q-pairs"><div class="q-pair"><p class="q-o" data-b="0"><span class="o-n" aria-hidden="true">1</span>Delivered enterprise healthcare/EDI applications, reducing manual workloads by <b class="fig">40%</b>.</p><div class="q-vigs"><figure class="vig" data-b="0"><span class="v-n" aria-hidden="true">1</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(4,26)"><ellipse cx="16.5" cy="36.7" rx="12.100000000000001" ry="3" fill="#2A2018" opacity=".1"/><rect x="0" y="0.0" width="22" height="32" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><rect x="0" y="0.0" width="22" height="32" rx="5" fill="#2A2018" opacity=".07"/><rect x="11" y="7.699999999999999" width="22" height="32" rx="5" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/><g stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" opacity=".6"><path d="M19 21.7 h6M19 31.7 h6M19 41.7 h-2"/></g></g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M44 50 H57"/><path d="M56 41 l9 9 l-9 9"/></g><g transform="translate(74,18)">
   <rect x="0" y="0" width="64" height="60" rx="8" fill="var(--panel)"
         stroke="var(--edge)" stroke-width="1.4"/>
   <g stroke="var(--c2)" stroke-width="2.6" stroke-linecap="round"><path d="M12 24 h40M12 36 h40M12 48 h24"/></g><text x="12" y="14" font-family="Baloo 2, system-ui, sans-serif" font-size="12" font-weight="800" fill="var(--c1)" text-anchor="start">EDI</text>
@@ -1795,7 +1910,7 @@
         fill="none" stroke-linecap="round"/>
   <g class="blink"><ellipse cx="34" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><ellipse cx="56" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><circle cx="35.4" cy="31.2" r="1.35" fill="#FFFFFF"/><circle cx="57.4" cy="31.2" r="1.35" fill="#FFFFFF"/></g>
   <path d="M40 45 h10" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 1. </span>40% less manual work</figcaption></figure><figure class="vig" data-b="1"><span class="v-n" aria-hidden="true">2</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(6,14)"><rect x="0" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="20" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="40" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="60" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="80" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="0" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="20" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="40" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="60" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="80" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="0" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="20" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="40" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="60" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="80" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="0" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/><rect x="20" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/><rect x="40" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/><rect x="60" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/><rect x="80" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/></g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M112 52 H129" stroke-dasharray="7 6" class="flow"/><path d="M128 43 l9 9 l-9 9"/></g><g transform="translate(146,26) scale(-0.5,0.5) translate(-90,0)" style="--shirt:var(--c1);--skin:#E3B08A;--tie:var(--c1)">
+</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 1. </span>40% less manual work</figcaption></figure></div></div><div class="q-pair"><p class="q-o" data-b="1"><span class="o-n" aria-hidden="true">2</span>Created <b class="fig">20+</b> reusable components, cutting feature-delivery time by <b class="fig">40%</b> across teams.</p><div class="q-vigs"><figure class="vig" data-b="1"><span class="v-n" aria-hidden="true">2</span><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(6,14)"><rect x="0" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="20" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="40" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="60" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="80" y="0" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.92"/><rect x="0" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="20" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="40" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="60" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="80" y="20" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.76"/><rect x="0" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="20" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="40" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="60" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="80" y="40" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.60"/><rect x="0" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/><rect x="20" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/><rect x="40" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/><rect x="60" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/><rect x="80" y="60" width="16" height="16" rx="5" fill="var(--c4)" opacity="0.44"/></g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M112 52 H129" stroke-dasharray="7 6" class="flow"/><path d="M128 43 l9 9 l-9 9"/></g><g transform="translate(146,26) scale(-0.5,0.5) translate(-90,0)" style="--shirt:var(--c1);--skin:#E3B08A;--tie:var(--c1)">
   <path d="M18 88 q-8 10-2 20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M72 86 q16-10 22-26" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="16" cy="108" r="6" fill="var(--skin)"/><circle cx="96" cy="58" r="6" fill="var(--skin)"/>
   <path d="M13 120 v-30 c0-17 14-31 32-31 s32 14 32 31 v30 z" fill="var(--shirt)"/><path d="M13 120 v-30 c0-17 14-31 32-31 c-11 3-19 14-19 31 v30 z" fill="#2A2018" opacity=".13"/>
   <path d="M36 43 h18 v19 q-9 6-18 0z" fill="#C08E68"/>
@@ -1821,7 +1936,7 @@
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 2. </span>20+ components, 40% faster delivery</figcaption></figure><figure class="vig" data-b="2"><span class="v-n" aria-hidden="true">3</span><svg viewBox="0 0 260 124" aria-hidden="true"><rect x="4" y="10" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="30" y="10" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="4" y="31" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="30" y="31" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="4" y="52" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="30" y="52" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="4" y="73" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><g transform="translate(50,30) scale(0.9)">
+</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 2. </span>20+ components, 40% faster delivery</figcaption></figure></div></div><div class="q-pair"><p class="q-o" data-b="2"><span class="o-n" aria-hidden="true">3</span>Led vulnerability scanning and remediation using ZAP across 7 applications spanning 50 developers.</p><div class="q-vigs"><figure class="vig" data-b="2"><span class="v-n" aria-hidden="true">3</span><svg viewBox="0 0 260 124" aria-hidden="true"><rect x="4" y="10" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="30" y="10" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="4" y="31" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="30" y="31" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="4" y="52" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="30" y="52" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><rect x="4" y="73" width="24" height="15" rx="3" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.2"/><g transform="translate(50,30) scale(0.9)">
   <path d="M23 23 l9 9" stroke="var(--c2)" stroke-width="4.4" stroke-linecap="round"/>
   <circle cx="14" cy="14" r="12" fill="var(--panel)" opacity=".55"/>
   <circle cx="14" cy="14" r="12" fill="none" stroke="var(--c2)" stroke-width="3.4"/>
@@ -1865,7 +1980,11 @@
         fill="none" stroke-linecap="round"/>
   <g class="blink"><ellipse cx="34" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><ellipse cx="56" cy="33" rx="3.7" ry="4.8" fill="#2A2018"/><circle cx="35.4" cy="31.2" r="1.35" fill="#FFFFFF"/><circle cx="57.4" cy="31.2" r="1.35" fill="#FFFFFF"/></g>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 3. </span>7 apps scanned, then closed</figcaption></figure></div>
+</g><rect x="6" y="104" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption><span class="sr">Illustrates objective 3. </span>7 apps scanned, then closed</figcaption></figure></div></div></div>
+    
+    <p class="q-lbl q-lbl--stack">Stack</p>
+    <div class="chips"><span class="chip">ASP.NET MVC</span><span class="chip">Web API</span><span class="chip">C#</span><span class="chip">AngularJS</span><span class="chip">SQL Server</span><span class="chip">RabbitMQ</span><span class="chip">ZAP</span></div>
+  </div>
 </article>
   <div class="c-drops rv">
     <h4 class="q-lbl">Systems shipped here</h4>
@@ -2071,9 +2190,10 @@
   <div class="sgrid">
 <div class="scroll" style="--era: var(--era-6)">
   <span class="s-badge"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
-  <path d="M26.0 1.0 L30.8 5.0 L36.8 3.5 L39.4 9.2 L45.5 10.4 L45.4 16.7 L50.4 20.4 L47.5 26.0 L50.4 31.6 L45.4 35.3 L45.5 41.6 L39.4 42.8 L36.8 48.5 L30.8 47.0 L26.0 51.0 L21.2 47.0 L15.2 48.5 L12.6 42.8 L6.5 41.6 L6.6 35.3 L1.6 31.6 L4.5 26.0 L1.6 20.4 L6.6 16.7 L6.5 10.4 L12.6 9.2 L15.2 3.5 L21.2 5.0 Z" fill="var(--era)" opacity=".4"/>
-  <circle cx="26" cy="26" r="17.5" fill="var(--era)"/>
-  <g transform="translate(26,26)"><g stroke="var(--panel)" stroke-width="1.9" opacity=".92" fill="none"><path d="M-6-4 L4-6M-6-4 L2 5M4-6 L2 5"/></g><g fill="var(--panel)"><circle cx="-6" cy="-4" r="3.1"/><circle cx="4" cy="-6" r="3.1"/><circle cx="2" cy="5" r="3.1"/></g></g>
+  <path d="M18.5 29 L10.5 50.5 L19 46.6 L22 33.5 Z" fill="var(--era)" opacity=".5"/><path d="M33.5 29 L41.5 50.5 L33 46.6 L30 33.5 Z" fill="var(--era)" opacity=".72"/>
+  <path d="M26.0 1.0 L29.0 3.6 L32.7 2.2 L34.6 5.6 L38.5 5.6 L39.2 9.4 L42.9 10.8 L42.2 14.6 L45.2 17.1 L43.2 20.5 L45.2 23.9 L42.2 26.4 L42.9 30.2 L39.2 31.6 L38.5 35.4 L34.6 35.4 L32.7 38.8 L29.0 37.4 L26.0 40.0 L23.0 37.4 L19.3 38.8 L17.4 35.4 L13.5 35.4 L12.8 31.6 L9.1 30.3 L9.8 26.4 L6.8 23.9 L8.8 20.5 L6.8 17.1 L9.8 14.6 L9.1 10.8 L12.8 9.4 L13.5 5.6 L17.4 5.6 L19.3 2.2 L23.0 3.6 Z" fill="var(--era)" opacity=".42"/>
+  <circle cx="26" cy="20.5" r="15" fill="var(--era)"/><path d="M11 20.5 a15 15 0 0 1 15-15 a15 15 0 0 1 12.4 6.6 a19 19 0 0 0-26.4 12.9 Z" fill="var(--panel)" opacity=".17"/><circle cx="26" cy="20.5" r="11.6" fill="none" stroke="var(--panel)" stroke-width="1" opacity=".3"/>
+  <g transform="translate(26,20.5)"><g stroke="var(--panel)" stroke-width="1.9" opacity=".92" fill="none"><path d="M-6-4 L4-6M-6-4 L2 5M4-6 L2 5"/></g><g fill="var(--panel)"><circle cx="-6" cy="-4" r="3.1"/><circle cx="4" cy="-6" r="3.1"/><circle cx="2" cy="5" r="3.1"/></g></g>
 </g></svg></span>
   <div class="s-body">
     <h3>Agentic AI</h3>
@@ -2083,21 +2203,23 @@
 </div>
 <div class="scroll" style="--era: var(--era-6)">
   <span class="s-badge"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
-  <path d="M26.0 1.0 L30.8 5.0 L36.8 3.5 L39.4 9.2 L45.5 10.4 L45.4 16.7 L50.4 20.4 L47.5 26.0 L50.4 31.6 L45.4 35.3 L45.5 41.6 L39.4 42.8 L36.8 48.5 L30.8 47.0 L26.0 51.0 L21.2 47.0 L15.2 48.5 L12.6 42.8 L6.5 41.6 L6.6 35.3 L1.6 31.6 L4.5 26.0 L1.6 20.4 L6.6 16.7 L6.5 10.4 L12.6 9.2 L15.2 3.5 L21.2 5.0 Z" fill="var(--era)" opacity=".22"/>
-  <circle cx="26" cy="26" r="17.5" fill="none" stroke="var(--era)" stroke-width="2.4" stroke-dasharray="4 4" opacity=".8"/>
-  <path d="M26 18 v9 l6 4" fill="none" stroke="var(--era)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <path d="M26.0 1.0 L29.0 3.6 L32.7 2.2 L34.6 5.6 L38.5 5.6 L39.2 9.4 L42.9 10.8 L42.2 14.6 L45.2 17.1 L43.2 20.5 L45.2 23.9 L42.2 26.4 L42.9 30.2 L39.2 31.6 L38.5 35.4 L34.6 35.4 L32.7 38.8 L29.0 37.4 L26.0 40.0 L23.0 37.4 L19.3 38.8 L17.4 35.4 L13.5 35.4 L12.8 31.6 L9.1 30.3 L9.8 26.4 L6.8 23.9 L8.8 20.5 L6.8 17.1 L9.8 14.6 L9.1 10.8 L12.8 9.4 L13.5 5.6 L17.4 5.6 L19.3 2.2 L23.0 3.6 Z" fill="var(--era)" opacity=".2"/>
+  <circle cx="26" cy="20.5" r="15" fill="var(--panel)" opacity=".45"/><circle cx="26" cy="20.5" r="15" fill="none" stroke="var(--era)" stroke-width="2.3" stroke-dasharray="4.2 4.2" opacity=".85"/>
+  <path d="M26 13.9 v7.1 l4.8 3.1" fill="none" stroke="var(--era)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
 </g></svg></span>
   <div class="s-body">
-    <h3>Cloud Architect certification</h3>
-    
+    <h3>Claude Certified Architect</h3>
+    <p class="s-i">Anthropic</p>
     <p class="s-w"><span class="s-wip">In progress</span></p>
   </div>
 </div>
 <div class="scroll" style="--era: var(--era-6)">
   <span class="s-badge"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
-  <path d="M26.0 1.0 L30.8 5.0 L36.8 3.5 L39.4 9.2 L45.5 10.4 L45.4 16.7 L50.4 20.4 L47.5 26.0 L50.4 31.6 L45.4 35.3 L45.5 41.6 L39.4 42.8 L36.8 48.5 L30.8 47.0 L26.0 51.0 L21.2 47.0 L15.2 48.5 L12.6 42.8 L6.5 41.6 L6.6 35.3 L1.6 31.6 L4.5 26.0 L1.6 20.4 L6.6 16.7 L6.5 10.4 L12.6 9.2 L15.2 3.5 L21.2 5.0 Z" fill="var(--era)" opacity=".4"/>
-  <circle cx="26" cy="26" r="17.5" fill="var(--era)"/>
-  <g transform="translate(26,26)"><path d="M-9 4 a5.2 5.2 0 0 1 1.4-10 a7 7 0 0 1 13.2 1.6 a4.4 4.4 0 0 1-1.2 8.4z" fill="var(--panel)" opacity=".92"/></g>
+  <path d="M18.5 29 L10.5 50.5 L19 46.6 L22 33.5 Z" fill="var(--era)" opacity=".5"/><path d="M33.5 29 L41.5 50.5 L33 46.6 L30 33.5 Z" fill="var(--era)" opacity=".72"/>
+  <path d="M26.0 1.0 L29.0 3.6 L32.7 2.2 L34.6 5.6 L38.5 5.6 L39.2 9.4 L42.9 10.8 L42.2 14.6 L45.2 17.1 L43.2 20.5 L45.2 23.9 L42.2 26.4 L42.9 30.2 L39.2 31.6 L38.5 35.4 L34.6 35.4 L32.7 38.8 L29.0 37.4 L26.0 40.0 L23.0 37.4 L19.3 38.8 L17.4 35.4 L13.5 35.4 L12.8 31.6 L9.1 30.3 L9.8 26.4 L6.8 23.9 L8.8 20.5 L6.8 17.1 L9.8 14.6 L9.1 10.8 L12.8 9.4 L13.5 5.6 L17.4 5.6 L19.3 2.2 L23.0 3.6 Z" fill="var(--era)" opacity=".42"/>
+  <circle cx="26" cy="20.5" r="15" fill="var(--era)"/><path d="M11 20.5 a15 15 0 0 1 15-15 a15 15 0 0 1 12.4 6.6 a19 19 0 0 0-26.4 12.9 Z" fill="var(--panel)" opacity=".17"/><circle cx="26" cy="20.5" r="11.6" fill="none" stroke="var(--panel)" stroke-width="1" opacity=".3"/>
+  <g transform="translate(26,20.5)"><path d="M-9 4 a5.2 5.2 0 0 1 1.4-10 a7 7 0 0 1 13.2 1.6 a4.4 4.4 0 0 1-1.2 8.4z" fill="var(--panel)" opacity=".92"/></g>
 </g></svg></span>
   <div class="s-body">
     <h3>Microsoft Certified: Azure Developer Associate</h3>
@@ -2107,9 +2229,10 @@
 </div>
 <div class="scroll" style="--era: var(--era-6)">
   <span class="s-badge"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
-  <path d="M26.0 1.0 L30.8 5.0 L36.8 3.5 L39.4 9.2 L45.5 10.4 L45.4 16.7 L50.4 20.4 L47.5 26.0 L50.4 31.6 L45.4 35.3 L45.5 41.6 L39.4 42.8 L36.8 48.5 L30.8 47.0 L26.0 51.0 L21.2 47.0 L15.2 48.5 L12.6 42.8 L6.5 41.6 L6.6 35.3 L1.6 31.6 L4.5 26.0 L1.6 20.4 L6.6 16.7 L6.5 10.4 L12.6 9.2 L15.2 3.5 L21.2 5.0 Z" fill="var(--era)" opacity=".4"/>
-  <circle cx="26" cy="26" r="17.5" fill="var(--era)"/>
-  <g transform="translate(26,26)"><path d="M-10-7 h12 a2.4 2.4 0 0 1 2.4 2.4 v5.2 a2.4 2.4 0 0 1-2.4 2.4 h-6.6 L-8 8 v-4.6 h-2 a2.4 2.4 0 0 1-2.4-2.4 v-5.2 A2.4 2.4 0 0 1-10-7z" fill="var(--panel)" opacity=".92"/><path d="M4-2 h6 a2 2 0 0 1 2 2 v4.4 a2 2 0 0 1-2 2 h-1 v3 l-3.4-3 H4 a2 2 0 0 1-2-2 V0 a2 2 0 0 1 2-2z" fill="var(--panel)" opacity=".55"/></g>
+  <path d="M18.5 29 L10.5 50.5 L19 46.6 L22 33.5 Z" fill="var(--era)" opacity=".5"/><path d="M33.5 29 L41.5 50.5 L33 46.6 L30 33.5 Z" fill="var(--era)" opacity=".72"/>
+  <path d="M26.0 1.0 L29.0 3.6 L32.7 2.2 L34.6 5.6 L38.5 5.6 L39.2 9.4 L42.9 10.8 L42.2 14.6 L45.2 17.1 L43.2 20.5 L45.2 23.9 L42.2 26.4 L42.9 30.2 L39.2 31.6 L38.5 35.4 L34.6 35.4 L32.7 38.8 L29.0 37.4 L26.0 40.0 L23.0 37.4 L19.3 38.8 L17.4 35.4 L13.5 35.4 L12.8 31.6 L9.1 30.3 L9.8 26.4 L6.8 23.9 L8.8 20.5 L6.8 17.1 L9.8 14.6 L9.1 10.8 L12.8 9.4 L13.5 5.6 L17.4 5.6 L19.3 2.2 L23.0 3.6 Z" fill="var(--era)" opacity=".42"/>
+  <circle cx="26" cy="20.5" r="15" fill="var(--era)"/><path d="M11 20.5 a15 15 0 0 1 15-15 a15 15 0 0 1 12.4 6.6 a19 19 0 0 0-26.4 12.9 Z" fill="var(--panel)" opacity=".17"/><circle cx="26" cy="20.5" r="11.6" fill="none" stroke="var(--panel)" stroke-width="1" opacity=".3"/>
+  <g transform="translate(26,20.5)"><path d="M-10-7 h12 a2.4 2.4 0 0 1 2.4 2.4 v5.2 a2.4 2.4 0 0 1-2.4 2.4 h-6.6 L-8 8 v-4.6 h-2 a2.4 2.4 0 0 1-2.4-2.4 v-5.2 A2.4 2.4 0 0 1-10-7z" fill="var(--panel)" opacity=".92"/><path d="M4-2 h6 a2 2 0 0 1 2 2 v4.4 a2 2 0 0 1-2 2 h-1 v3 l-3.4-3 H4 a2 2 0 0 1-2-2 V0 a2 2 0 0 1 2-2z" fill="var(--panel)" opacity=".55"/></g>
 </g></svg></span>
   <div class="s-body">
     <h3>EF SET English Certificate: C1 Advanced</h3>
@@ -2119,9 +2242,10 @@
 </div>
 <div class="scroll" style="--era: var(--era-2)">
   <span class="s-badge"><svg viewBox="0 0 52 52" aria-hidden="true"><g transform="translate(0,0) scale(1.0)">
-  <path d="M26.0 1.0 L30.8 5.0 L36.8 3.5 L39.4 9.2 L45.5 10.4 L45.4 16.7 L50.4 20.4 L47.5 26.0 L50.4 31.6 L45.4 35.3 L45.5 41.6 L39.4 42.8 L36.8 48.5 L30.8 47.0 L26.0 51.0 L21.2 47.0 L15.2 48.5 L12.6 42.8 L6.5 41.6 L6.6 35.3 L1.6 31.6 L4.5 26.0 L1.6 20.4 L6.6 16.7 L6.5 10.4 L12.6 9.2 L15.2 3.5 L21.2 5.0 Z" fill="var(--era)" opacity=".4"/>
-  <circle cx="26" cy="26" r="17.5" fill="var(--era)"/>
-  <g transform="translate(26,26)"><path d="M0-9 l2.6 5.6 6.1.8-4.5 4.3 1.1 6.1L0 4.1l-5.3 3.7 1.1-6.1-4.5-4.3 6.1-.8z" fill="var(--panel)" opacity=".92"/></g>
+  <path d="M18.5 29 L10.5 50.5 L19 46.6 L22 33.5 Z" fill="var(--era)" opacity=".5"/><path d="M33.5 29 L41.5 50.5 L33 46.6 L30 33.5 Z" fill="var(--era)" opacity=".72"/>
+  <path d="M26.0 1.0 L29.0 3.6 L32.7 2.2 L34.6 5.6 L38.5 5.6 L39.2 9.4 L42.9 10.8 L42.2 14.6 L45.2 17.1 L43.2 20.5 L45.2 23.9 L42.2 26.4 L42.9 30.2 L39.2 31.6 L38.5 35.4 L34.6 35.4 L32.7 38.8 L29.0 37.4 L26.0 40.0 L23.0 37.4 L19.3 38.8 L17.4 35.4 L13.5 35.4 L12.8 31.6 L9.1 30.3 L9.8 26.4 L6.8 23.9 L8.8 20.5 L6.8 17.1 L9.8 14.6 L9.1 10.8 L12.8 9.4 L13.5 5.6 L17.4 5.6 L19.3 2.2 L23.0 3.6 Z" fill="var(--era)" opacity=".42"/>
+  <circle cx="26" cy="20.5" r="15" fill="var(--era)"/><path d="M11 20.5 a15 15 0 0 1 15-15 a15 15 0 0 1 12.4 6.6 a19 19 0 0 0-26.4 12.9 Z" fill="var(--panel)" opacity=".17"/><circle cx="26" cy="20.5" r="11.6" fill="none" stroke="var(--panel)" stroke-width="1" opacity=".3"/>
+  <g transform="translate(26,20.5)"><path d="M0-9 l2.6 5.6 6.1.8-4.5 4.3 1.1 6.1L0 4.1l-5.3 3.7 1.1-6.1-4.5-4.3 6.1-.8z" fill="var(--panel)" opacity=".92"/></g>
 </g></svg></span>
   <div class="s-body">
     <h3>Microsoft India App Fest</h3>
@@ -2254,15 +2378,15 @@
     <h3>School</h3>
   </div>
   <div class="o-body"><p>Long before any of this was a job, the habit was already there, and it was not the syllabus. It was the entering of things: the science fair, the shortlist, the team.</p>
-    <ul class="wins"><li><strong>Best Student Award</strong>, chosen from a school of 800</li><li><strong>State-level science fair</strong>, after winning the district round</li></ul>
+    <ul class="wins"><li><strong>Best Student Award</strong>, chosen from a school of 800</li><li><strong>State-level science fair</strong>, after winning the district round<em class="win-p">automatic street lights, switched by a sensor</em></li></ul>
     <div class="chips"><span class="chip">Ball Badminton</span><span class="chip">Baseball</span></div></div>
-  <div class="o-art"><figure class="vig"><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(24,84)"><circle cx="0" cy="0" r="6.5" fill="#E3B08A"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(39,84)"><circle cx="0" cy="0" r="6.5" fill="#8D5A3B"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(54,84)"><circle cx="0" cy="0" r="6.5" fill="#8D5A3B"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(69,84)"><circle cx="0" cy="0" r="6.5" fill="#E3B08A"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(84,84)"><circle cx="0" cy="0" r="6.5" fill="#8D5A3B"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(99,84)"><circle cx="0" cy="0" r="6.5" fill="#8D5A3B"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(114,84)"><circle cx="0" cy="0" r="6.5" fill="#E3B08A"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(129,84)"><circle cx="0" cy="0" r="6.5" fill="#8D5A3B"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(144,84)"><circle cx="0" cy="0" r="6.5" fill="#8D5A3B"/><path d="M-6.5 -1 a6.5 6.5 0 0 1 13.0 0 a6.5 4.03 0 0 0 -13.0 0z" fill="#241C17"/><circle cx="-2.08" cy="1.04" r="0.715" fill="#2A2018"/><circle cx="2.08" cy="1.04" r="0.715" fill="#2A2018"/></g><g transform="translate(96,16) scale(1.05)">
+  <div class="o-art"><figure class="vig"><svg viewBox="0 0 260 124" aria-hidden="true"><g class="cull" style="animation-delay:0.00s"><g transform="translate(16,84)"><circle cx="0" cy="0" r="9.50" fill="#241C17"/><circle cx="0" cy="1.71" r="8.07" fill="#C98B5E"/><circle cx="-2.94" cy="1.90" r="1.14" fill="#2A2018"/><circle cx="2.94" cy="1.90" r="1.14" fill="#2A2018"/><path d="M-1.90 4.94 q1.90 1.71 3.80 0" fill="none" stroke="#2A2018" stroke-width="1.04" stroke-linecap="round"/></g></g><g class="cull" style="animation-delay:0.22s"><g transform="translate(36,84)"><circle cx="0" cy="-9.69" r="3.2300000000000004" fill="#241C17"/><circle cx="0" cy="0" r="9.50" fill="#241C17"/><circle cx="0" cy="1.71" r="8.07" fill="#E3B08A"/><circle cx="-2.94" cy="1.90" r="1.14" fill="#2A2018"/><circle cx="2.94" cy="1.90" r="1.14" fill="#2A2018"/><path d="M-1.90 4.94 q1.90 1.71 3.80 0" fill="none" stroke="#2A2018" stroke-width="1.04" stroke-linecap="round"/></g></g><g class="cull" style="animation-delay:0.44s"><g transform="translate(56,84)"><circle cx="0" cy="0" r="10.07" fill="#241C17"/><circle cx="0" cy="2.28" r="8.07" fill="#8D5A3B"/><circle cx="-2.94" cy="1.90" r="1.14" fill="#2A2018"/><circle cx="2.94" cy="1.90" r="1.14" fill="#2A2018"/><path d="M-1.90 4.94 q1.90 1.71 3.80 0" fill="none" stroke="#2A2018" stroke-width="1.04" stroke-linecap="round"/></g></g><g class="cull" style="animation-delay:0.66s"><g transform="translate(76,84)"><circle cx="0" cy="0" r="9.50" fill="#241C17"/><circle cx="0" cy="1.71" r="8.07" fill="#C98B5E"/><circle cx="-2.94" cy="1.90" r="1.14" fill="#2A2018"/><circle cx="2.94" cy="1.90" r="1.14" fill="#2A2018"/><path d="M-1.90 4.94 q1.90 1.71 3.80 0" fill="none" stroke="#2A2018" stroke-width="1.04" stroke-linecap="round"/></g></g><g class="cull" style="animation-delay:0.88s"><g transform="translate(96,84)"><circle cx="0" cy="-9.69" r="3.2300000000000004" fill="#241C17"/><circle cx="0" cy="0" r="9.50" fill="#241C17"/><circle cx="0" cy="1.71" r="8.07" fill="#E3B08A"/><circle cx="-2.94" cy="1.90" r="1.14" fill="#2A2018"/><circle cx="2.94" cy="1.90" r="1.14" fill="#2A2018"/><path d="M-1.90 4.94 q1.90 1.71 3.80 0" fill="none" stroke="#2A2018" stroke-width="1.04" stroke-linecap="round"/></g></g><g class="cull" style="animation-delay:1.10s"><g transform="translate(116,84)"><circle cx="0" cy="0" r="10.07" fill="#241C17"/><circle cx="0" cy="2.28" r="8.07" fill="#8D5A3B"/><circle cx="-2.94" cy="1.90" r="1.14" fill="#2A2018"/><circle cx="2.94" cy="1.90" r="1.14" fill="#2A2018"/><path d="M-1.90 4.94 q1.90 1.71 3.80 0" fill="none" stroke="#2A2018" stroke-width="1.04" stroke-linecap="round"/></g></g><g class="cull" style="animation-delay:1.32s"><g transform="translate(136,84)"><circle cx="0" cy="0" r="9.50" fill="#241C17"/><circle cx="0" cy="1.71" r="8.07" fill="#C98B5E"/><circle cx="-2.94" cy="1.90" r="1.14" fill="#2A2018"/><circle cx="2.94" cy="1.90" r="1.14" fill="#2A2018"/><path d="M-1.90 4.94 q1.90 1.71 3.80 0" fill="none" stroke="#2A2018" stroke-width="1.04" stroke-linecap="round"/></g></g><text x="76" y="112" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink-3)" text-anchor="middle">1 of 800</text><g transform="translate(120,8) scale(1.05)">
   <path d="M14 34 L8 60 L22 51 L36 60 L30 34 Z" fill="var(--c4)" opacity=".55"/>
   <path d="M22.0 1.0 L26.0 7.0 L32.5 3.8 L33.0 11.0 L40.2 11.5 L37.0 18.0 L43.0 22.0 L37.0 26.0 L40.2 32.5 L33.0 33.0 L32.5 40.2 L26.0 37.0 L22.0 43.0 L18.0 37.0 L11.5 40.2 L11.0 33.0 L3.8 32.5 L7.0 26.0 L1.0 22.0 L7.0 18.0 L3.8 11.5 L11.0 11.0 L11.5 3.8 L18.0 7.0 Z" fill="var(--c4)" opacity=".62"/>
   <circle cx="22" cy="22" r="13" fill="var(--c4)"/>
   <path d="M22 13.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8z"
         fill="var(--panel)" opacity=".9"/>
-</g><path class="tw" style="animation-delay:0s" d="M92 7 l2.1 4.8999999999999995 l4.8999999999999995 2.1 l-4.8999999999999995 2.1 l-2.1 4.8999999999999995 l-2.1 -4.8999999999999995 l-4.8999999999999995 -2.1 l4.8999999999999995 -2.1 z" fill="var(--c4)"/><g transform="translate(172,18) scale(0.58,0.58)" style="--shirt:var(--c1);--skin:#C98B5E;--tie:var(--c1)">
+</g><path class="tw" style="animation-delay:0s" d="M116 -1 l2.1 4.8999999999999995 l4.8999999999999995 2.1 l-4.8999999999999995 2.1 l-2.1 4.8999999999999995 l-2.1 -4.8999999999999995 l-4.8999999999999995 -2.1 l4.8999999999999995 -2.1 z" fill="var(--c4)"/><g transform="translate(178,34) scale(0.54,0.54)" style="--shirt:var(--c1);--skin:#C98B5E;--tie:var(--c1)">
   <path d="M18 88 v20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M72 88 v20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="18" cy="112" r="6" fill="var(--skin)"/><circle cx="72" cy="112" r="6" fill="var(--skin)"/>
   <path d="M13 120 v-30 c0-17 14-31 32-31 s32 14 32 31 v30 z" fill="var(--shirt)"/><path d="M13 120 v-30 c0-17 14-31 32-31 c-11 3-19 14-19 31 v30 z" fill="#2A2018" opacity=".13"/>
   <path d="M36 43 h18 v19 q-9 6-18 0z" fill="#A96F45"/>
@@ -2275,23 +2399,90 @@
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="106" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption>Best Student Award</figcaption></figure><figure class="vig"><svg viewBox="0 0 260 124" aria-hidden="true"><rect x="4" y="74" width="58" height="14" rx="3" fill="var(--shade)"/><rect x="66" y="58" width="58" height="30" rx="3" fill="var(--shade)"/><text x="33" y="84" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-3)" text-anchor="middle">district</text><text x="95" y="68" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="var(--ink-2)" text-anchor="middle">state</text><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M30 50 H53" stroke-dasharray="7 6" class="flow"/><path d="M52 41 l9 9 l-9 9"/></g><g transform="translate(66,4) scale(0.62)"><ellipse cx="39" cy="76" rx="30" ry="3" fill="#2A2018" opacity=".1"/>
-  <path d="M18 52 l-10 22M60 52 l10 22" stroke="var(--c2)" stroke-width="3"
-        stroke-linecap="round" opacity=".8"/>
-  <rect x="4" y="0" width="70" height="54" rx="6" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/>
-  <rect x="4" y="0" width="70" height="54" rx="6" fill="var(--c2)" opacity=".08"/>
-  <g transform="translate(30,8) scale(0.72)">
-  <path d="M10 2 h6 v9 l7 15 a3 3 0 0 1-3 4 H6 a3 3 0 0 1-3-4 l7-15z"
-        fill="var(--panel)" opacity=".6"/>
-  <path d="M10 2 h6 v9 l7 15 a3 3 0 0 1-3 4 H6 a3 3 0 0 1-3-4 l7-15z"
-        fill="none" stroke="var(--c3)" stroke-width="2.4" stroke-linejoin="round"/>
-  <path d="M6.6 22 h12.8 l3.6 8 a3 3 0 0 1-3 4 H6 a3 3 0 0 1-3-4z" fill="var(--c3)"
+</g><rect x="6" y="100" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption>Best Student Award</figcaption></figure><figure class="vig"><svg viewBox="0 0 260 124" aria-hidden="true"><g class="sky-sun" transform="translate(10,2) scale(0.5)"><circle cx="17" cy="17" r="8" fill="var(--c5)"/><g stroke="var(--c5)" stroke-width="2.2" stroke-linecap="round" opacity=".8"><path d="M17 17 m11.0 0.0 l4.5 0.0"/><path d="M17 17 m7.8 7.8 l3.2 3.2"/><path d="M17 17 m0.0 11.0 l0.0 4.5"/><path d="M17 17 m-7.8 7.8 l-3.2 3.2"/><path d="M17 17 m-11.0 0.0 l-4.5 0.0"/><path d="M17 17 m-7.8 -7.8 l-3.2 -3.2"/><path d="M17 17 m-0.0 -11.0 l-0.0 -4.5"/><path d="M17 17 m7.8 -7.8 l3.2 -3.2"/></g></g><g class="sky-moon" transform="translate(12,4) scale(0.52)"><path d="M13 2 A11 11 0 1 0 13 24 A14 14 0 0 1 13 2 Z" fill="var(--c2)" opacity=".9"/></g><g transform="translate(84,21) scale(0.82)">
+  <g class="lamp-cone">
+    <ellipse cx="51" cy="15" rx="15" ry="9" fill="var(--c4)" opacity=".2"/>
+    <g stroke="var(--c4)" stroke-width="2.6" stroke-linecap="round" opacity=".45">
+      <path d="M49 19 L38 62M52 19 L52 66M55 19 L64 62"/>
+    </g>
+    <g stroke="var(--c4)" stroke-width="2.2" stroke-linecap="round" opacity=".3">
+      <path d="M47 21 L31 58M57 21 L71 58"/>
+    </g>
+    <ellipse cx="51" cy="96" rx="20" ry="4.4" fill="var(--c4)" opacity=".45"/>
+    <ellipse cx="51" cy="96" rx="11" ry="2.6" fill="var(--c4)" opacity=".55"/>
+  </g>
+  <path d="M26 98 V20" stroke="var(--c4)" stroke-width="5" stroke-linecap="round"
+        opacity=".85"/>
+  <path d="M26 20 q0-13 15-13 h6" fill="none" stroke="var(--c4)" stroke-width="5"
+        stroke-linecap="round" opacity=".85"/>
+  <path d="M43 6 h16 l3 8 h-22 z" fill="var(--c4)" opacity=".92"/>
+  <ellipse class="lamp-bulb" cx="51" cy="15" rx="8" ry="2.6" fill="#FFF6E3"/>
+  <rect x="18" y="94" width="16" height="6" rx="3" fill="var(--c4)" opacity=".55"/>
+  <ellipse cx="26" cy="100" rx="13" ry="2.4" fill="#2A2018" opacity=".1"/>
+</g><g transform="translate(24,72) scale(0.9)">
+  <path d="M9 30 v9M23 30 v9" stroke="var(--c3)" stroke-width="2.2"
+        stroke-linecap="round" opacity=".55"/>
+  <path d="M30 12 v-4" stroke="var(--c3)" stroke-width="2" stroke-linecap="round"
+        opacity=".6"/>
+  <circle class="s-led" cx="30" cy="5" r="3.6" fill="var(--c3)"/>
+  <rect x="2" y="10" width="34" height="21" rx="4" fill="var(--c3)" opacity=".18"/>
+  <rect x="2" y="10" width="34" height="21" rx="4" fill="none" stroke="var(--c3)"
+        stroke-width="2" opacity=".7"/>
+  <circle cx="14" cy="20.5" r="7" fill="var(--panel)" opacity=".5"/>
+  <circle cx="14" cy="20.5" r="7" fill="none" stroke="var(--c3)" stroke-width="1.6"
+          opacity=".65"/>
+  <circle class="s-eye" cx="14" cy="20.5" r="4" fill="var(--c3)"/>
+  <path d="M36 20.5 h10" stroke="var(--c3)" stroke-width="2" stroke-linecap="round"
         opacity=".7"/>
-  <rect x="8.6" y="0" width="8.8" height="3" rx="1.5" fill="var(--c3)"/>
-  <circle cx="11" cy="27" r="1.5" fill="var(--panel)" opacity=".8"/>
-  <circle cx="16" cy="29.5" r="1.1" fill="var(--panel)" opacity=".7"/>
-</g><g stroke="var(--c2)" stroke-width="2.2" stroke-linecap="round" opacity=".75"><path d="M12 40 h46M12 47 h32"/></g>
-</g><g transform="translate(180,20) scale(0.56,0.56)" style="--shirt:var(--c2);--skin:#C98B5E;--tie:var(--c1)">
+</g><g stroke="var(--shade)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M68 87 H87" stroke-dasharray="7 6" class="flow"/><path d="M86 78 l9 9 l-9 9"/></g><g transform="translate(178,38) scale(0.52,0.52)" style="--shirt:var(--c2);--skin:#C98B5E;--tie:var(--c1)">
+  <path d="M18 88 v20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M72 88 v20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="18" cy="112" r="6" fill="var(--skin)"/><circle cx="72" cy="112" r="6" fill="var(--skin)"/>
+  <path d="M13 120 v-30 c0-17 14-31 32-31 s32 14 32 31 v30 z" fill="var(--shirt)"/><path d="M13 120 v-30 c0-17 14-31 32-31 c-11 3-19 14-19 31 v30 z" fill="#2A2018" opacity=".13"/>
+  <path d="M36 43 h18 v19 q-9 6-18 0z" fill="#A96F45"/>
+  <path d="M32 64 q13 13 26 0 z" fill="var(--skin)"/><path d="M32 64 q13 13 26 0 q-13 6-26 0z" fill="#2A2018" opacity=".12"/>
+  <path d="M45 3 c-14.5 0-24 9.5-24 23 v9 c0 12.5 9.8 21 24 21 s24-8.5 24-21 v-9 c0-13.5-9.5-23-24-23z" fill="var(--skin)"/><path d="M45 3 c-14.5 0-24 9.5-24 23 v9 c0 12.5 9.8 21 24 21 c-9-4-13-11-13-21 v-9 c0-11 5-19 13-23z" fill="#2A2018" opacity=".07"/>
+  <ellipse cx="20.6" cy="36" rx="3.2" ry="4.6" fill="var(--skin)"/>
+  <ellipse cx="69.4" cy="36" rx="3.2" ry="4.6" fill="var(--skin)"/>
+  <path d="M19.5 27 C 18 10, 29 1, 45 1 C 61 1, 72 10, 70.5 27 C 69 20.5, 65.5 16.5, 61 14.5 C 53.5 20.5, 40 21, 32.5 17.5 C 27.5 18.5, 22.5 21.5, 19.5 27 Z" fill="#241C17"/>
+  <path d="M29 22.6 q5.5-3.6 11 0M50 22.6 q5.5-3.6 11 0" stroke="#2A2018" stroke-width="2.2"
+        fill="none" stroke-linecap="round"/>
+  <g class="blink"><ellipse cx="34" cy="33" rx="5.6" ry="6.2" fill="#FFFFFF"/><ellipse cx="56" cy="33" rx="5.6" ry="6.2" fill="#FFFFFF"/><circle cx="34" cy="33.4" r="2.6" fill="#2A2018"/><circle cx="56" cy="33.4" r="2.6" fill="#2A2018"/></g>
+  <ellipse cx="45" cy="45" rx="4" ry="5" fill="#2A2018"/>
+</g><rect x="6" y="100" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption>Street lights that switch themselves</figcaption></figure><figure class="vig"><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(6,10) scale(1.0)">
+  <path d="M15 34 v26" stroke="var(--c3)" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="15" cy="19" rx="13" ry="18" fill="var(--c3)" opacity=".16"/>
+  <ellipse cx="15" cy="19" rx="13" ry="18" fill="none" stroke="var(--c3)" stroke-width="3.4"/>
+  <g stroke="var(--c3)" stroke-width="1.3" opacity=".55">
+    <path d="M6 8 v22M15 3 v32M24 8 v22M4 13 h22M4 19 h22M4 25 h22"/>
+  </g>
+</g><g class="serve"><g transform="translate(42,26) scale(1.0)">
+  <g stroke="var(--c4)" stroke-width="1.5" stroke-linecap="round" opacity=".7">
+    <path d="M13 13 m11.2 0.0 l2.3 0.0"/><path d="M13 13 m9.7 5.6 l2.0 1.1"/><path d="M13 13 m5.6 9.7 l1.2 2.0"/><path d="M13 13 m0.0 11.2 l0.0 2.3"/><path d="M13 13 m-5.6 9.7 l-1.1 2.0"/><path d="M13 13 m-9.7 5.6 l-2.0 1.1"/><path d="M13 13 m-11.2 0.0 l-2.3 0.0"/><path d="M13 13 m-9.7 -5.6 l-2.0 -1.1"/><path d="M13 13 m-5.6 -9.7 l-1.2 -2.0"/><path d="M13 13 m-0.0 -11.2 l-0.0 -2.3"/><path d="M13 13 m5.6 -9.7 l1.2 -2.0"/><path d="M13 13 m9.7 -5.6 l2.0 -1.2"/></g>
+  <circle cx="13" cy="13" r="11" fill="var(--c4)"/>
+  <path d="M13 2a11 11 0 0 0 0 22z" fill="#2A2018" opacity=".14"/>
+  <g fill="none" stroke="var(--panel)" stroke-width="1.3" stroke-linecap="round"
+     opacity=".4">
+    <path d="M6 8 q4 3 3 8M17 6 q-2 5 2 9M9 19 q4-2 8 1"/>
+  </g>
+</g></g><g class="swing"><g transform="translate(84,8) scale(0.86)">
+  <path d="M9 74 a3 3 0 0 1-3-3 v-2 a3 3 0 0 1 1.6-2.6 l0.4-24
+           q-2.6-9-2.6-24 a3.6 3.6 0 0 1 7.2 0 q0 15-2.6 24 l0.4 24
+           a3 3 0 0 1 1.6 2.6 v2 a3 3 0 0 1-3 3z" fill="var(--c5)"/>
+  <path d="M9 74 a3 3 0 0 1-3-3 v-2 a3 3 0 0 1 1.6-2.6 l0.4-24
+           q-2.6-9-2.6-24 a3.6 3.6 0 0 1 3.6-3.6 q-1.4 6-1.4 15
+           q0 9 1 12.6 l-0.4 24 q-1.6 0.6-1.6 2.6 v2 q0 3 1.8 3z"
+        fill="#2A2018" opacity=".14"/>
+</g></g><g class="hit"><g transform="translate(108,32) scale(1.0)">
+  <circle cx="12" cy="12" r="11" fill="var(--c3)"/>
+  <path d="M12 1a11 11 0 0 0 0 22z" fill="#2A2018" opacity=".13"/>
+  <g fill="none" stroke="var(--panel)" stroke-width="1.7" stroke-linecap="round"
+     opacity=".75">
+    <path d="M4.5 4.5 q4 7.5 0 15M19.5 4.5 q-4 7.5 0 15"/>
+  </g>
+  <g stroke="var(--panel)" stroke-width="1.2" opacity=".55">
+    <path d="M5.6 7 l2.6-1M5.6 11 l2.8 0M5.6 15 l2.6 1
+             M18.4 7 l-2.6-1M18.4 11 l-2.8 0M18.4 15 l-2.6 1"/>
+  </g>
+</g></g><g transform="translate(148,36) scale(0.54,0.54)" style="--shirt:var(--c3);--skin:#C98B5E;--tie:var(--c1)">
   <path d="M18 88 q-14-14-10-30" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M72 88 q14-14 10-30" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="8" cy="56" r="6" fill="var(--skin)"/><circle cx="82" cy="56" r="6" fill="var(--skin)"/>
   <path d="M13 120 v-30 c0-17 14-31 32-31 s32 14 32 31 v30 z" fill="var(--shirt)"/><path d="M13 120 v-30 c0-17 14-31 32-31 c-11 3-19 14-19 31 v30 z" fill="#2A2018" opacity=".13"/>
   <path d="M36 43 h18 v19 q-9 6-18 0z" fill="#A96F45"/>
@@ -2304,49 +2495,20 @@
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M37 43 q8 9 16 0 z" fill="#2A2018"/>
-</g></svg><figcaption>State-level science fair</figcaption></figure><figure class="vig"><svg viewBox="0 0 260 124" aria-hidden="true"><g transform="translate(8,20) scale(0.95)">
-  <path d="M15 34 v26" stroke="var(--c3)" stroke-width="4" stroke-linecap="round"/>
-  <ellipse cx="15" cy="19" rx="13" ry="18" fill="var(--c3)" opacity=".16"/>
-  <ellipse cx="15" cy="19" rx="13" ry="18" fill="none" stroke="var(--c3)" stroke-width="3.4"/>
-  <g stroke="var(--c3)" stroke-width="1.3" opacity=".55">
-    <path d="M6 8 v22M15 3 v32M24 8 v22M4 13 h22M4 19 h22M4 25 h22"/>
-  </g>
-</g><g transform="translate(46,30) scale(0.95)">
-  <circle cx="13" cy="13" r="12" fill="var(--c4)"/>
-  <path d="M13 1a12 12 0 0 0 0 24z" fill="#2A2018" opacity=".14"/>
-  <g fill="none" stroke="var(--panel)" stroke-width="1.5" opacity=".55">
-    <path d="M4 6 q9 7 18 0M4 20 q9-7 18 0M13 1 v24"/>
-  </g>
-</g><g transform="translate(96,24) scale(0.85)">
-  <path d="M10 62 q-3-1-3-5 l1-16 q-4-8-4-18 a6 6 0 0 1 12 0 q0 10-4 18 l1 16
-           q0 4-3 5z" fill="var(--c5)"/>
-  <path d="M10 62 q-3-1-3-5 l1-16 q-4-8-4-18 a6 6 0 0 1 6-6 q-2 5-2 12
-           q0 8 2 14 l-1 16 q0 4 1 3z" fill="#2A2018" opacity=".14"/>
-  <rect x="6" y="48" width="8" height="2.4" rx="1.2" fill="var(--panel)" opacity=".45"/>
-</g><g transform="translate(122,40) scale(0.95)">
-  <circle cx="12" cy="12" r="11" fill="var(--panel)" stroke="var(--edge)" stroke-width="1.4"/>
-  <circle cx="12" cy="12" r="11" fill="var(--c3)" opacity=".16"/>
-  <g fill="none" stroke="var(--c3)" stroke-width="1.8" stroke-linecap="round">
-    <path d="M4.5 4.5 q4 7.5 0 15M19.5 4.5 q-4 7.5 0 15"/>
-  </g>
-  <g stroke="var(--c3)" stroke-width="1.2" opacity=".8">
-    <path d="M5.6 7 l2.6-1M5.6 11 l2.8 0M5.6 15 l2.6 1
-             M18.4 7 l-2.6-1M18.4 11 l-2.8 0M18.4 15 l-2.6 1"/>
-  </g>
-</g><g stroke="var(--c3)" stroke-width="2.4" stroke-linecap="round" opacity=".28"><path d="M74 26 h14"/><path d="M74 37 h6"/><path d="M74 48 h14"/></g><g transform="translate(180,20) scale(0.56,0.56)" style="--shirt:var(--c3);--skin:#C98B5E;--tie:var(--c1)">
+</g><g transform="translate(198,44) scale(0.48,0.48)" style="--shirt:var(--c2);--skin:#8D5A3B;--tie:var(--c1)">
   <path d="M18 88 v20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M72 88 v20" stroke="var(--shirt)" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="18" cy="112" r="6" fill="var(--skin)"/><circle cx="72" cy="112" r="6" fill="var(--skin)"/>
   <path d="M13 120 v-30 c0-17 14-31 32-31 s32 14 32 31 v30 z" fill="var(--shirt)"/><path d="M13 120 v-30 c0-17 14-31 32-31 c-11 3-19 14-19 31 v30 z" fill="#2A2018" opacity=".13"/>
-  <path d="M36 43 h18 v19 q-9 6-18 0z" fill="#A96F45"/>
+  <path d="M36 43 h18 v19 q-9 6-18 0z" fill="#70452C"/>
   <path d="M32 64 q13 13 26 0 z" fill="var(--skin)"/><path d="M32 64 q13 13 26 0 q-13 6-26 0z" fill="#2A2018" opacity=".12"/>
   <path d="M45 3 c-14.5 0-24 9.5-24 23 v9 c0 12.5 9.8 21 24 21 s24-8.5 24-21 v-9 c0-13.5-9.5-23-24-23z" fill="var(--skin)"/><path d="M45 3 c-14.5 0-24 9.5-24 23 v9 c0 12.5 9.8 21 24 21 c-9-4-13-11-13-21 v-9 c0-11 5-19 13-23z" fill="#2A2018" opacity=".07"/>
   <ellipse cx="20.6" cy="36" rx="3.2" ry="4.6" fill="var(--skin)"/>
   <ellipse cx="69.4" cy="36" rx="3.2" ry="4.6" fill="var(--skin)"/>
-  <path d="M19.5 27 C 18 10, 29 1, 45 1 C 61 1, 72 10, 70.5 27 C 69 20.5, 65.5 16.5, 61 14.5 C 53.5 20.5, 40 21, 32.5 17.5 C 27.5 18.5, 22.5 21.5, 19.5 27 Z" fill="#241C17"/>
+  <path d="M18.5 31 C 16 12, 28 0.5, 45 0.5 C 62 0.5, 74 12, 71.5 31 C 69.5 22, 66 18, 63 16 C 58 22, 50 24, 44 23 C 36 22, 30 19, 27 15.5 C 23 18, 20 23, 18.5 31 Z" fill="#241C17"/>
   <path d="M29 26.4 q5.5-3.4 11 0M50 26.4 q5.5-3.4 11 0" stroke="#2A2018" stroke-width="2.2"
         fill="none" stroke-linecap="round"/>
   <path d="M29.5 34.5 q4.5-6 9 0M51.5 34.5 q4.5-6 9 0" stroke="#2A2018" stroke-width="2.7" fill="none" stroke-linecap="round"/>
   <path d="M39 44 q6 6 12 0" stroke="#2A2018" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-</g><rect x="6" y="106" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption>Ball Badminton and Baseball</figcaption></figure></div>
+</g><rect x="6" y="100" width="248" height="3" rx="1.5" fill="#2A2018" opacity=".1"/></svg><figcaption>Ball Badminton and Baseball</figcaption></figure></div>
 </article>
 </section>
 </main>
@@ -2362,7 +2524,7 @@
   <p class="f-close">There is always another manual thing. If yours has a name, I would like to hear it.</p>
   <nav class="f-reply" aria-label="Get in touch">
     <a class="f-mail" href="mailto:allubalu3@live.com">allubalu3@live.com</a>
-    <button class="cv-a f-cv cv-a--print" type="button" data-print="1"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 15.2h12" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Download CV</span></button>
+    <a class="cv-a f-cv" href="cv.pdf" download><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 15.2h12" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Download CV</span></a>
     <span class="links">
       <a href="https://www.linkedin.com/in/prasanna-allu-7227066b/">LinkedIn</a>
       <a href="https://github.com/allubalu">GitHub</a>
